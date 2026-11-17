@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>SPACE Z - SURVIVAL & PVP</title>
+  <title>SPACE Z - ONLINE PVP & CRAFT</title>
   <style>
     * { box-sizing: border-box; user-select: none; }
     body { margin: 0; overflow: hidden; background-color: #000208; font-family: 'Segoe UI', 'Hiragino Kaku Gothic ProN', sans-serif; color: #fff; }
@@ -30,7 +30,7 @@
       margin-bottom: 22px; font-size: 14px; font-weight: bold;
     }
 
-    .menu-buttons { display: flex; flex-direction: column; gap: 12px; width: 340px; }
+    .menu-buttons { display: flex; flex-direction: column; gap: 12px; width: 350px; }
     .menu-btn {
       padding: 15px 22px; font-size: 17px; font-weight: bold; color: #fff;
       background: rgba(10, 25, 50, 0.85); border: 1px solid #38bdf8;
@@ -78,7 +78,21 @@
       display: flex; justify-content: space-between; align-items: center;
       padding: 12px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
-    select { background: #0f172a; color: #fff; border: 1px solid #38bdf8; padding: 7px 12px; border-radius: 5px; }
+    select, input[type="text"] {
+      background: #0f172a; color: #fff; border: 1px solid #38bdf8;
+      padding: 9px 12px; border-radius: 5px; font-size: 14px;
+    }
+    input[type="text"] { user-select: text; width: 220px; }
+
+    .pvp-box {
+      background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(56, 189, 248, 0.4);
+      border-radius: 8px; padding: 14px; margin-bottom: 14px; text-align: left;
+    }
+    .id-display {
+      display: inline-block; background: #020617; border: 1px dashed #38bdf8;
+      color: #38bdf8; font-family: monospace; font-size: 18px; font-weight: bold;
+      padding: 6px 14px; border-radius: 6px; user-select: text;
+    }
 
     .back-btn {
       margin-top: 16px; width: 100%; padding: 11px; background: #1e293b;
@@ -88,7 +102,7 @@
     /* HUD */
     #hud {
       position: absolute; top: 15px; left: 15px; color: #70f0ff; font-size: 13px;
-      pointer-events: none; background: rgba(5, 15, 30, 0.8); padding: 12px 16px;
+      pointer-events: none; background: rgba(5, 15, 30, 0.82); padding: 12px 16px;
       border-left: 4px solid #ef4444; border-radius: 0 8px 8px 0; line-height: 1.65;
     }
     #hp-text { color: #4ade80; font-size: 16px; font-weight: bold; }
@@ -98,7 +112,7 @@
 
     #radar-box {
       position: absolute; top: 15px; right: 15px; text-align: center;
-      background: rgba(5, 15, 30, 0.8); border: 1px solid #38bdf8;
+      background: rgba(5, 15, 30, 0.82); border: 1px solid #38bdf8;
       border-radius: 10px; padding: 8px;
     }
     #radar { display: block; border-radius: 50%; background: radial-gradient(circle, #0a192f 0%, #020617 100%); }
@@ -112,8 +126,8 @@
     .mini-btn:hover { background: #ef4444; color: #fff; border-color: #ef4444; }
 
     #nora-log {
-      position: absolute; bottom: 15px; left: 15px; width: 340px;
-      background: rgba(30, 5, 15, 0.82); border: 1px solid rgba(239, 68, 68, 0.5);
+      position: absolute; bottom: 15px; left: 15px; width: 360px;
+      background: rgba(30, 5, 15, 0.85); border: 1px solid rgba(239, 68, 68, 0.5);
       border-radius: 8px; padding: 9px 12px; font-size: 12px; color: #fecaca; pointer-events: none;
     }
     #toast {
@@ -124,13 +138,14 @@
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
 <body>
 
   <!-- メインメニュー -->
   <div id="main-menu" class="overlay">
     <div class="title-logo">SPACE Z</div>
-    <div class="subtitle">HARDCORE SURVIVAL & PVP ARENA</div>
+    <div class="subtitle">REALTIME ONLINE PVP & CRAFT</div>
     <div class="mat-bar">
       <span>🔩 鉄: <b id="m-iron">0</b></span>
       <span>⚡ コア: <b id="m-core">0</b></span>
@@ -138,10 +153,10 @@
     </div>
     <div class="menu-buttons">
       <button class="menu-btn" onclick="startGame('solo')">
-        <span>🚀 宇宙サバイバルへ出る</span><span class="tag">HIGH RISK</span>
+        <span>🚀 宇宙サバイバルへ出る</span><span class="tag">SOLO RISK</span>
       </button>
       <button class="menu-btn" onclick="openNoraLobby()">
-        <span>⚔️ ノラン（野良PvP対戦）</span><span class="tag">DEATHMATCH</span>
+        <span>🌐 オンラインPvP対戦</span><span class="tag">P2P LIVE</span>
       </button>
       <button class="menu-btn" onclick="openCraftShop()">
         <span>🔧 資材クラフト工房</span><span class="tag">BUILD MECH</span>
@@ -184,6 +199,10 @@
     <div class="panel">
       <div class="panel-header"><h2>⚙️ ゲーム設定</h2></div>
       <div class="setting-row">
+        <span>パイロット名（オンライン表示名）</span>
+        <input type="text" id="cfg-name" maxlength="12" placeholder="Pilot_Z" onchange="saveSettings()">
+      </div>
+      <div class="setting-row">
         <span>難易度</span>
         <select id="cfg-diff" onchange="saveSettings()">
           <option value="easy">EASY（標準サバイバル）</option>
@@ -209,23 +228,41 @@
     </div>
   </div>
 
-  <!-- ノラン（野良PvP対戦ロビー） -->
+  <!-- オンラインPvP対戦ロビー（PeerJSリアルタイム通信） -->
   <div id="nora-menu" class="overlay hidden">
-    <div class="panel" style="text-align:center;">
+    <div class="panel">
       <div class="panel-header">
-        <h2>⚔️ ノラン（野良PvPバトルロイヤル）</h2>
-        <span style="color:#f87171; font-size:13px;">● 交戦許可エリア</span>
+        <h2>🌐 リアルタイム通信PvPロビー</h2>
+        <span id="peer-net-status" style="color:#facc15; font-size:12px;">● 通信初期化中...</span>
       </div>
-      <p style="color:#cbd5e1; font-size:14px; line-height:1.6;">
-        他のプレイヤー機（ライバルパイロット）と1対多で戦う無法宙域！<br>
-        相手を撃墜すれば大量のレア資材を奪えるが、自分がやられれば全物資を失う！
-      </p>
-      <div style="margin:15px 0; padding:12px; background:rgba(239,68,68,0.15); border:1px solid #ef4444; border-radius:8px; color:#fca5a5; font-weight:bold;">
-        ⚠️ 賞金首パイロット 3機 がこの宙域で獲物を狙っています！
+
+      <div class="pvp-box">
+        <div style="font-weight:bold; color:#38bdf8; margin-bottom:6px;">① ホストとして宙域を開く（友達を待つ）</div>
+        <p style="font-size:12px; color:#94a3b8; margin:0 0 10px 0;">
+          下の「あなたのルームID」を友達に教えると、リアルタイムで同じ宇宙空間に飛び込んできます！
+        </p>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <span class="id-display" id="my-peer-id">取得中...</span>
+          <button class="craft-btn" onclick="copyMyRoomId()">IDをコピー</button>
+          <button class="menu-btn" style="padding:10px 18px; font-size:14px;" onclick="startGame('online')">
+            🚀 ルームを開いて出撃
+          </button>
+        </div>
       </div>
-      <button class="menu-btn" style="width:100%; justify-content:center;" onclick="startGame('nora')">
-        ⚔️ 野良PvPバトルへ出撃する
-      </button>
+
+      <div class="pvp-box">
+        <div style="font-weight:bold; color:#f472b6; margin-bottom:6px;">② 友達のルームIDを入力して乱入する</div>
+        <p style="font-size:12px; color:#94a3b8; margin:0 0 10px 0;">
+          相手が「ルームを開いて出撃」している状態でIDを入力して接続してください。
+        </p>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <input type="text" id="join-peer-id" placeholder="例: spacez-1234">
+          <button class="menu-btn" style="padding:10px 18px; font-size:14px;" onclick="joinOnlineRoom()">
+            ⚔️ 相手の宇宙へ乱入！
+          </button>
+        </div>
+      </div>
+
       <button class="back-btn" onclick="showMainMenu()">← メニューに戻る</button>
     </div>
   </div>
@@ -243,7 +280,7 @@
 
   <div id="radar-box" class="hidden">
     <canvas id="radar" width="130" height="130"></canvas>
-    <div style="font-size:10px; color:#7dd3fc; margin-top:3px;">赤:敵 / 紫:PvP敵 / 黄:資材</div>
+    <div style="font-size:10px; color:#7dd3fc; margin-top:3px;">赤:敵 / 紫:対人プレイヤー / 黄:資材</div>
   </div>
 
   <div id="play-btns" class="top-btns hidden">
@@ -254,7 +291,7 @@
   <div id="nora-log" class="hidden"></div>
   <div id="toast"></div>
 
-  <!-- ゲームオーバー（物資全ロスト演出） -->
+  <!-- ゲームオーバー -->
   <div id="gameover-overlay" class="overlay hidden">
     <div class="panel" style="text-align:center; max-width:440px; border-top-color:#ef4444;">
       <h1 style="color:#ef4444; margin-top:0; font-size:36px;">💥 船体大破！</h1>
@@ -270,15 +307,18 @@
     // ==========================================
     // セーブデータ＆クラフトレシピ
     // ==========================================
-    let saveData = JSON.parse(localStorage.getItem('spaceZ_galaxy_v3')) || {
+    let saveData = JSON.parse(localStorage.getItem('spaceZ_galaxy_v4')) || {
       iron: 0,
       core: 0,
       crystal: 0,
       shipColor: 0xdc2626,
-      crafted: []
+      crafted: [],
+      pilotName: 'Pilot_' + Math.floor(100 + Math.random() * 900)
     };
+    document.getElementById('cfg-name').value = saveData.pilotName;
+
     function persist() {
-      localStorage.setItem('spaceZ_galaxy_v3', JSON.stringify(saveData));
+      localStorage.setItem('spaceZ_galaxy_v4', JSON.stringify(saveData));
     }
 
     const RECIPES = [
@@ -320,7 +360,168 @@
       config.diff = document.getElementById('cfg-diff').value;
       config.cam = document.getElementById('cfg-cam').value;
       config.gfx = document.getElementById('cfg-gfx').value;
+      const n = document.getElementById('cfg-name').value.trim();
+      if (n) { saveData.pilotName = n; persist(); }
       stars.visible = (config.gfx === 'high');
+    }
+
+    // ==========================================
+    // ★リアルタイムP2P通信（PeerJS）管理
+    // ==========================================
+    let peer = null;
+    let myPeerId = '';
+    const connections = {}; // peerId -> DataConnection
+    const remotePlayers = {}; // peerId -> { mesh, targetPos, targetYaw, name, hp }
+
+    function initPeerNetwork() {
+      if (peer && !peer.destroyed) return;
+      const randomCode = 'spacez-' + Math.floor(1000 + Math.random() * 9000);
+      peer = new Peer(randomCode);
+
+      peer.on('open', (id) => {
+        myPeerId = id;
+        document.getElementById('my-peer-id').textContent = id;
+        const st = document.getElementById('peer-net-status');
+        st.textContent = '● オンライン待機OK';
+        st.style.color = '#4ade80';
+      });
+
+      peer.on('connection', (conn) => {
+        setupConnection(conn);
+      });
+
+      peer.on('error', (err) => {
+        console.warn('PeerJS Error:', err);
+        showToast('⚠️ 通信エラー: ' + err.type);
+      });
+    }
+
+    function setupConnection(conn) {
+      conn.on('open', () => {
+        connections[conn.peer] = conn;
+        showToast(`🌐 プレイヤー [${conn.peer}] が接続しました！`);
+        addNoraLog(`⚔️ <b>[${conn.peer}]</b> が同じ宇宙空間にワープしてきました！`);
+        // 自分の機体情報を即座に送信
+        sendNetPacket({
+          type: 'sync',
+          name: saveData.pilotName,
+          x: shipGroup.position.x,
+          z: shipGroup.position.z,
+          yaw: shipYaw,
+          roll: shipGroup.rotation.z,
+          color: saveData.shipColor,
+          crafted: saveData.crafted
+        });
+      });
+
+      conn.on('data', (data) => {
+        handleNetData(conn.peer, data);
+      });
+
+      conn.on('close', () => {
+        delete connections[conn.peer];
+        if (remotePlayers[conn.peer]) {
+          scene.remove(remotePlayers[conn.peer].mesh);
+          addNoraLog(`🚪 <b>${remotePlayers[conn.peer].name}</b> が戦域から離脱しました`);
+          delete remotePlayers[conn.peer];
+        }
+      });
+    }
+
+    function sendNetPacket(obj) {
+      Object.values(connections).forEach(conn => {
+        if (conn.open) conn.send(obj);
+      });
+    }
+
+    function handleNetData(peerId, data) {
+      if (data.type === 'sync') {
+        if (!remotePlayers[peerId]) {
+          const rMesh = buildPlayerShip(data.color || 0x9333ea, data.crafted || []);
+          const marker = new THREE.Mesh(
+            new THREE.OctahedronGeometry(1.15),
+            new THREE.MeshBasicMaterial({ color: 0xe879f9, wireframe: true })
+          );
+          marker.position.y = 3.4;
+          marker.name = 'spinPart';
+          rMesh.add(marker);
+          rMesh.position.set(data.x, 0, data.z);
+          scene.add(rMesh);
+          remotePlayers[peerId] = {
+            mesh: rMesh,
+            targetPos: new THREE.Vector3(data.x, 0, data.z),
+            targetYaw: data.yaw,
+            targetRoll: data.roll || 0,
+            name: data.name || peerId,
+            color: data.color,
+            craftedKey: JSON.stringify(data.crafted || [])
+          };
+          addNoraLog(`🔥 対人ライバル <b>[${remotePlayers[peerId].name}]</b> を捕捉！`);
+        } else {
+          const rp = remotePlayers[peerId];
+          rp.targetPos.set(data.x, 0, data.z);
+          rp.targetYaw = data.yaw;
+          rp.targetRoll = data.roll || 0;
+          rp.name = data.name || rp.name;
+          // 相手が装備や色を変えたら再構築
+          const newKey = JSON.stringify(data.crafted || []);
+          if (rp.color !== data.color || rp.craftedKey !== newKey) {
+            scene.remove(rp.mesh);
+            const newMesh = buildPlayerShip(data.color, data.crafted || []);
+            const marker = new THREE.Mesh(
+              new THREE.OctahedronGeometry(1.15),
+              new THREE.MeshBasicMaterial({ color: 0xe879f9, wireframe: true })
+            );
+            marker.position.y = 3.4;
+            marker.name = 'spinPart';
+            newMesh.add(marker);
+            newMesh.position.copy(rp.targetPos);
+            scene.add(newMesh);
+            rp.mesh = newMesh;
+            rp.color = data.color;
+            rp.craftedKey = newKey;
+          }
+        }
+      } else if (data.type === 'fire') {
+        // 相手プレイヤーが撃ったビームを自分の画面にも生成！
+        const dir = new THREE.Vector3(data.dx, 0, data.dz);
+        fireEnemyBeam(new THREE.Vector3(data.x, 0, data.z), dir, 0xe879f9, 2.4, data.dmg || 16);
+      } else if (data.type === 'hit_me') {
+        // 自分の弾が相手に命中した通知
+        createExplosion(new THREE.Vector3(data.x, 0, data.z), 0xe879f9, 10);
+      } else if (data.type === 'killed') {
+        // 相手プレイヤーを撃墜した！大量のレア資材がドロップ！
+        const dropPos = new THREE.Vector3(data.x, 0, data.z);
+        createExplosion(dropPos, 0xe879f9, 30);
+        dropMaterials(dropPos, { iron: 4, core: 3, crystal: 2 });
+        kills++;
+        missileCharge = Math.min(100, missileCharge + 40);
+        updateHUD();
+        showToast(`🏆 プレイヤー [${data.victimName}] を撃墜！レア資材を奪取！`);
+        addNoraLog(`💀 <b>あなた</b> が <b>[${data.victimName}]</b> を撃墜しました！`);
+      }
+    }
+
+    function copyMyRoomId() {
+      if (!myPeerId) return;
+      navigator.clipboard.writeText(myPeerId);
+      showToast(`📋 ルームID「${myPeerId}」をコピーしました！`);
+    }
+
+    function joinOnlineRoom() {
+      const targetId = document.getElementById('join-peer-id').value.trim();
+      if (!targetId) {
+        showToast('相手のルームIDを入力してください');
+        return;
+      }
+      if (targetId === myPeerId) {
+        showToast('自分のIDには接続できません');
+        return;
+      }
+      startGame('online');
+      const conn = peer.connect(targetId);
+      setupConnection(conn);
+      addNoraLog(`🔄 ルーム [${targetId}] へワープ接続中...`);
     }
 
     // ==========================================
@@ -339,7 +540,6 @@
     sunLight.position.set(120, 180, 90);
     scene.add(sunLight);
 
-    // 惑星群
     const planets = [];
     const planetConfigs = [
       { x: 0, y: -145, z: -130, r: 120, color: 0x1d4ed8, ring: false },
@@ -368,7 +568,6 @@
       planets.push({ mesh: grp, x: p.x, z: p.z, r: p.r });
     });
 
-    // 宇宙ステーション
     const stationGroup = new THREE.Group();
     const stCore = new THREE.Mesh(
       new THREE.IcosahedronGeometry(18, 1),
@@ -383,7 +582,6 @@
     stationGroup.position.set(55, 12, -150);
     scene.add(stationGroup);
 
-    // 星空＆グリッド
     const starGeo = new THREE.BufferGeometry();
     const starPos = [];
     for (let i = 0; i < 3800; i++) {
@@ -398,7 +596,7 @@
     scene.add(gridHelper);
 
     // ==========================================
-    // 自機（＆PvPライバル機）3Dモデル
+    // 自機（＆他プレイヤー機）3Dモデル
     // ==========================================
     function buildPlayerShip(colorHex, craftedList) {
       const group = new THREE.Group();
@@ -516,7 +714,7 @@
     }
 
     // ==========================================
-    // 敵の定義（突撃特攻型 vs ビーム射撃型・高攻撃力！）
+    // NPC敵の定義（突撃特攻型 vs ビーム射撃型）
     // ==========================================
     const ENEMY_TYPES = [
       {
@@ -558,7 +756,6 @@
         nose.rotation.x = Math.PI / 2;
         nose.scale.set(1.3, 1.0, 0.4);
         grp.add(nose);
-
         [-1, 1].forEach(s => {
           const wing = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.16, 1.5), darkHull);
           wing.position.set(s * 1.8, -0.1, -0.3);
@@ -605,7 +802,6 @@
         grp.add(hull, bow, bridge);
       }
 
-      // 突撃型は黄色三角マーカー、ビーム型は赤菱形マーカー
       const markerGeo = spec.aiMode === 'ram' ? new THREE.ConeGeometry(0.8, 1.4, 3) : new THREE.OctahedronGeometry(0.85);
       const markerCol = spec.aiMode === 'ram' ? 0xfacc15 : 0xff2244;
       const marker = new THREE.Mesh(markerGeo, new THREE.MeshBasicMaterial({ color: markerCol, wireframe: true }));
@@ -626,6 +822,7 @@
     let hp = 100, maxHp = 100, kills = 0;
     let shipYaw = 0;
     let missileCharge = 100;
+    let syncTick = 0;
 
     const lasers = [];
     const enemyBullets = [];
@@ -633,7 +830,6 @@
     const enemies = [];
     const loots = [];
     const particles = [];
-    const rivals = []; // ★ノランPvPの敵対ライバル機！
 
     function showToast(msg) {
       const t = document.getElementById('toast');
@@ -661,8 +857,16 @@
       }
     }
 
-    // ★撃墜時の物資全ロスト処理
-    function triggerGameOver() {
+    // ★撃墜時の物資全ロスト＆相手への撃墜通知
+    function triggerGameOver(killerPeerId = null) {
+      if (killerPeerId && connections[killerPeerId]) {
+        connections[killerPeerId].send({
+          type: 'killed',
+          victimName: saveData.pilotName,
+          x: shipGroup.position.x,
+          z: shipGroup.position.z
+        });
+      }
       gameState = 'GAMEOVER';
       saveData.iron = 0;
       saveData.core = 0;
@@ -768,10 +972,14 @@
     }
 
     function openSettings() { hideAllOverlays(); document.getElementById('settings-menu').classList.remove('hidden'); }
-    function openNoraLobby() { hideAllOverlays(); document.getElementById('nora-menu').classList.remove('hidden'); }
+    function openNoraLobby() {
+      hideAllOverlays();
+      initPeerNetwork();
+      document.getElementById('nora-menu').classList.remove('hidden');
+    }
 
     function clearEntities() {
-      [lasers, enemyBullets, missiles, enemies, loots, particles, rivals].forEach(arr => {
+      [lasers, enemyBullets, missiles, enemies, loots, particles].forEach(arr => {
         arr.forEach(o => scene.remove(o));
         arr.length = 0;
       });
@@ -780,40 +988,6 @@
     function addNoraLog(msg) {
       const log = document.getElementById('nora-log');
       log.innerHTML = msg + '<br>' + log.innerHTML.split('<br>').slice(0, 3).join('<br>');
-    }
-
-    // ★ノランPvPライバル機を生成（プレイヤーと同等の機体で襲ってくる！）
-    function spawnRivalPilot() {
-      const names = ['Viper_X', 'ShadowAce', 'Reaper_99', 'Kurogane', 'Blaze_JP'];
-      const cols = [0x9333ea, 0xe11d48, 0x059669, 0xd97706];
-      const name = names[Math.floor(Math.random() * names.length)];
-      const col = cols[Math.floor(Math.random() * cols.length)];
-
-      const rival = buildPlayerShip(col, ['twin_wing', 'plasma_cannon']);
-      const marker = new THREE.Mesh(
-        new THREE.OctahedronGeometry(1.1),
-        new THREE.MeshBasicMaterial({ color: 0xd946ef, wireframe: true })
-      );
-      marker.position.y = 3.2;
-      marker.name = 'spinPart';
-      rival.add(marker);
-
-      const ang = Math.random() * Math.PI * 2;
-      const dist = 85 + Math.random() * 60;
-      rival.position.set(
-        shipGroup.position.x + Math.cos(ang) * dist,
-        0,
-        shipGroup.position.z + Math.sin(ang) * dist
-      );
-      rival.userData = {
-        name,
-        hp: 10,
-        shootCD: 55,
-        strafeDir: Math.random() < 0.5 ? 1 : -1
-      };
-      scene.add(rival);
-      rivals.push(rival);
-      addNoraLog(`⚠️ ライバル機 <b>[${name}]</b> があなたをロックオン！`);
     }
 
     function startGame(mode) {
@@ -826,20 +1000,23 @@
       hp = maxHp;
       kills = 0;
       missileCharge = 100;
-      shipGroup.position.set(0, 0, 0);
+      // オンライン時は重ならないよう少しランダム位置に出撃
+      shipGroup.position.set((Math.random() - 0.5) * 40, 0, (Math.random() - 0.5) * 40);
       shipYaw = 0;
 
-      document.getElementById('mode-label').textContent = mode === 'nora' ? '【⚔️ ノラン野良PvP対戦宙域】' : '【🚀 銀河サバイバル（撃墜時ロスト）】';
+      document.getElementById('mode-label').textContent = mode === 'online'
+        ? `【🌐 オンラインPvP (ID: ${myPeerId || '接続中'})】`
+        : '【🚀 銀河サバイバル（撃墜時ロスト）】';
       ['hud', 'radar-box', 'play-btns'].forEach(id => document.getElementById(id).classList.remove('hidden'));
       updateHUD();
 
-      for (let i = 0; i < 9; i++) spawnEnemyAroundPlayer(true);
+      const enemyCount = mode === 'online' ? 5 : 9;
+      for (let i = 0; i < enemyCount; i++) spawnEnemyAroundPlayer(true);
 
-      if (mode === 'nora') {
+      if (mode === 'online') {
         const log = document.getElementById('nora-log');
         log.classList.remove('hidden');
-        log.innerHTML = '⚔️ <b>野良PvPエリアに進入！周囲のプレイヤー機はすべて敵です！</b>';
-        for (let i = 0; i < 3; i++) spawnRivalPilot();
+        log.innerHTML = `🌐 <b>ルームID: ${myPeerId}</b> でオンライン開放中！`;
       }
     }
 
@@ -881,14 +1058,27 @@
         );
         laser.position.copy(shipGroup.position).addScaledVector(dir, 3.2);
         laser.rotation.y = shipYaw + spread;
-        laser.userData = { vel: dir.multiplyScalar(2.6), life: 75, power };
+        laser.userData = { vel: dir.clone().multiplyScalar(2.6), life: 75, power };
         scene.add(laser);
         lasers.push(laser);
+
+        // オンライン相手にも発射データを送信！
+        if (gameMode === 'online') {
+          sendNetPacket({
+            type: 'fire',
+            x: laser.position.x,
+            z: laser.position.z,
+            dx: dir.x,
+            dz: dir.z,
+            dmg: Math.round(14 * power)
+          });
+        }
       });
     }
 
     function fireHomingMissiles() {
-      const allTargets = [...enemies, ...rivals];
+      const remoteMeshes = Object.values(remotePlayers).map(r => r.mesh);
+      const allTargets = [...enemies, ...remoteMeshes];
       if (missileCharge < 100 || allTargets.length === 0) {
         if (allTargets.length === 0) showToast('周囲にロックオンできるターゲットがいません！');
         return;
@@ -916,9 +1106,9 @@
     function spawnEnemyAroundPlayer(initial = false) {
       const roll = Math.random();
       let spec = ENEMY_TYPES[0];
-      if (roll > 0.86) spec = ENEMY_TYPES[3];      // 超弩級戦艦（ビーム）
-      else if (roll > 0.58) spec = ENEMY_TYPES[2]; // ビーム巡洋艦（ビーム）
-      else if (roll > 0.30) spec = ENEMY_TYPES[1]; // 双胴突撃機（突撃）
+      if (roll > 0.86) spec = ENEMY_TYPES[3];
+      else if (roll > 0.58) spec = ENEMY_TYPES[2];
+      else if (roll > 0.30) spec = ENEMY_TYPES[1];
 
       const mesh = createEnemyMesh(spec);
       const dist = initial ? (55 + Math.random() * 140) : (115 + Math.random() * 90);
@@ -972,15 +1162,14 @@
       }
     }
 
-    // 敵ビーム発射関数（高威力・細長いビーム造形）
-    function fireEnemyBeam(originPos, dirVec, colorHex, speed, dmg) {
+    function fireEnemyBeam(originPos, dirVec, colorHex, speed, dmg, ownerPeerId = null) {
       const beam = new THREE.Mesh(
         new THREE.BoxGeometry(0.35, 0.35, 4.2),
         new THREE.MeshBasicMaterial({ color: colorHex })
       );
       beam.position.copy(originPos).addScaledVector(dirVec, 3.0);
       beam.rotation.y = Math.atan2(-dirVec.x, -dirVec.z);
-      beam.userData = { vel: dirVec.clone().multiplyScalar(speed), life: 105, dmg };
+      beam.userData = { vel: dirVec.clone().multiplyScalar(speed), life: 105, dmg, ownerPeerId };
       scene.add(beam);
       enemyBullets.push(beam);
     }
@@ -1016,7 +1205,6 @@
         }
       });
 
-      // 通常の敵（赤）
       enemies.forEach(e => {
         const dx = (e.position.x - shipGroup.position.x) * scale;
         const dz = (e.position.z - shipGroup.position.z) * scale;
@@ -1028,15 +1216,15 @@
         radarCtx.fill();
       });
 
-      // PvPライバル機（紫のひし形）
-      rivals.forEach(r => {
-        const dx = (r.position.x - shipGroup.position.x) * scale;
-        const dz = (r.position.z - shipGroup.position.z) * scale;
+      // オンライン対人プレイヤー（紫の大きな点）
+      Object.values(remotePlayers).forEach(rp => {
+        const dx = (rp.mesh.position.x - shipGroup.position.x) * scale;
+        const dz = (rp.mesh.position.z - shipGroup.position.z) * scale;
         const dist = Math.hypot(dx, dz);
         const clamp = dist > 60 ? 60 / dist : 1;
         radarCtx.fillStyle = '#e879f9';
         radarCtx.beginPath();
-        radarCtx.arc(cx + dx * clamp, cy + dz * clamp, 4.5, 0, Math.PI * 2);
+        radarCtx.arc(cx + dx * clamp, cy + dz * clamp, 5, 0, Math.PI * 2);
         radarCtx.fill();
       });
 
@@ -1088,7 +1276,7 @@
         if (missileCharge === 100) updateHUD();
       }
 
-      // 1. 操縦＆Shift高速ブースト
+      // 1. 操縦＆ブースト
       const hasHyper = saveData.crafted.includes('hyper_thruster');
       const turnSpeed = hasHyper ? 0.05 : 0.036;
       const baseMaxSpeed = hasHyper ? 0.82 : 0.56;
@@ -1109,8 +1297,24 @@
       shipGroup.rotation.y = shipYaw;
       shipGroup.rotation.z += (bankRoll - shipGroup.rotation.z) * 0.14;
 
+      const onlineCount = Object.keys(remotePlayers).length;
       document.getElementById('combo-hud').textContent =
-        `撃破数: ${kills} | 座標: X ${Math.round(shipGroup.position.x)}, Z ${Math.round(shipGroup.position.z)}`;
+        `撃破数: ${kills}${gameMode === 'online' ? ` | 接続プレイヤー: ${onlineCount}人` : ''} | X:${Math.round(shipGroup.position.x)} Z:${Math.round(shipGroup.position.z)}`;
+
+      // ★オンライン通信：自分の座標を相手へ定期送信（約30fps）
+      syncTick++;
+      if (gameMode === 'online' && syncTick % 2 === 0 && onlineCount > 0) {
+        sendNetPacket({
+          type: 'sync',
+          name: saveData.pilotName,
+          x: shipGroup.position.x,
+          z: shipGroup.position.z,
+          yaw: shipYaw,
+          roll: shipGroup.rotation.z,
+          color: saveData.shipColor,
+          crafted: saveData.crafted
+        });
+      }
 
       // 2. カメラ追従
       const targetFov = isBoosting ? 80 : 65;
@@ -1124,68 +1328,28 @@
       camera.position.z += (shipGroup.position.z - forwardZ * camDist - camera.position.z) * 0.12;
       camera.lookAt(shipGroup.position.x + forwardX * 16, 0.5, shipGroup.position.z + forwardZ * 16);
 
-      // 3. ★ノランPvPライバル機のAI（プレイヤーを執拗に狙ってビーム連射！）
-      if (gameMode === 'nora' && rivals.length < 3 && Math.random() < 0.01) {
-        spawnRivalPilot();
-      }
-      for (let i = rivals.length - 1; i >= 0; i--) {
-        const r = rivals[i];
-        r.children.forEach(c => { if (c.name === 'spinPart') c.rotation.y += 0.08; });
+      // 3. ★オンライン対人プレイヤー機の滑らかな位置補間＆ヒット判定
+      Object.entries(remotePlayers).forEach(([peerId, rp]) => {
+        rp.mesh.position.lerp(rp.targetPos, 0.25);
+        rp.mesh.rotation.y = rp.targetYaw;
+        rp.mesh.rotation.z = rp.targetRoll;
+        rp.mesh.children.forEach(c => {
+          if (c.name === 'spinPart') c.rotation.y += 0.08;
+          if (c.name === 'thruster') c.scale.y = 0.9 + Math.random() * 0.4;
+        });
 
-        const toPlayer = new THREE.Vector3().subVectors(shipGroup.position, r.position);
-        const dist = toPlayer.length();
-        const targetYaw = Math.atan2(-toPlayer.x, -toPlayer.z);
-        r.rotation.y = targetYaw;
-
-        // 旋回しながら距離を詰めるドッグファイト挙動
-        const moveAng = targetYaw + (dist < 32 ? r.userData.strafeDir * 1.1 : 0);
-        r.position.x += -Math.sin(moveAng) * 0.46;
-        r.position.z += -Math.cos(moveAng) * 0.46;
-
-        // ライバル機からの高威力2連ビーム射撃
-        r.userData.shootCD--;
-        if (r.userData.shootCD <= 0 && dist < 120) {
-          const dir = toPlayer.clone().normalize();
-          fireEnemyBeam(r.position, dir, 0xe879f9, 1.55, 18);
-          r.userData.shootCD = 48;
-        }
-
-        // 自機レーザー・ミサイル命中判定
-        let destroyed = false;
+        // 自分のレーザーが相手プレイヤーに当たったか演出判定
         for (let j = lasers.length - 1; j >= 0; j--) {
-          if (r.position.distanceTo(lasers[j].position) < 3.4) {
-            r.userData.hp -= lasers[j].userData.power;
-            createExplosion(lasers[j].position, 0xe879f9, 7);
+          if (rp.mesh.position.distanceTo(lasers[j].position) < 3.4) {
+            createExplosion(lasers[j].position, 0xe879f9, 8);
             scene.remove(lasers[j]);
             lasers.splice(j, 1);
-            if (r.userData.hp <= 0) { destroyed = true; break; }
-          }
-        }
-        if (!destroyed) {
-          for (let k = missiles.length - 1; k >= 0; k--) {
-            if (r.position.distanceTo(missiles[k].position) < 4.0) {
-              r.userData.hp -= missiles[k].userData.power;
-              createExplosion(missiles[k].position, 0xf472b6, 15);
-              scene.remove(missiles[k]);
-              missiles.splice(k, 1);
-              if (r.userData.hp <= 0) { destroyed = true; break; }
+            if (connections[peerId]) {
+              connections[peerId].send({ type: 'hit_me', x: rp.mesh.position.x, z: rp.mesh.position.z });
             }
           }
         }
-
-        if (destroyed) {
-          createExplosion(r.position, 0xe879f9, 26);
-          // ライバル機撃破で大量のレア資材を奪える！
-          dropMaterials(r.position, { iron: 3, core: 2, crystal: 1 });
-          scene.remove(r);
-          rivals.splice(i, 1);
-          kills++;
-          missileCharge = Math.min(100, missileCharge + 25);
-          updateHUD();
-          showToast(`⚔️ ライバル [${r.userData.name}] を撃墜！物資を奪取！`);
-          addNoraLog(`💀 <b>あなた</b> がライバル <b>[${r.userData.name}]</b> を撃墜しました！`);
-        }
-      }
+      });
 
       // 4. 自機レーザー更新
       for (let i = lasers.length - 1; i >= 0; i--) {
@@ -1196,7 +1360,8 @@
       }
 
       // 5. 追尾ミサイル更新
-      const allTargets = [...enemies, ...rivals];
+      const remoteMeshes = Object.values(remotePlayers).map(r => r.mesh);
+      const allTargets = [...enemies, ...remoteMeshes];
       for (let i = missiles.length - 1; i >= 0; i--) {
         const m = missiles[i];
         m.userData.life--;
@@ -1211,7 +1376,7 @@
         if (m.userData.life <= 0) { scene.remove(m); missiles.splice(i, 1); }
       }
 
-      // 6. 敵ビーム弾更新（高威力ダメージ！）
+      // 6. 敵＆相手プレイヤーのビーム弾更新
       const dmgMult = config.diff === 'hard' ? 1.3 : (config.diff === 'easy' ? 0.75 : 1.0);
       for (let i = enemyBullets.length - 1; i >= 0; i--) {
         const b = enemyBullets[i];
@@ -1225,7 +1390,7 @@
           hp = Math.max(0, hp - dmg);
           updateHUD();
           if (hp <= 0) {
-            triggerGameOver();
+            triggerGameOver(b.userData.ownerPeerId);
             return;
           }
           continue;
@@ -1233,8 +1398,9 @@
         if (b.userData.life <= 0) { scene.remove(b); enemyBullets.splice(i, 1); }
       }
 
-      // 7. 敵機AI（突撃特攻型 vs ビーム射撃型）
-      if (enemies.length < 11) spawnEnemyAroundPlayer(false);
+      // 7. NPC敵機AI
+      const maxEnemies = gameMode === 'online' ? 6 : 11;
+      if (enemies.length < maxEnemies) spawnEnemyAroundPlayer(false);
 
       for (let i = enemies.length - 1; i >= 0; i--) {
         const e = enemies[i];
@@ -1250,13 +1416,11 @@
         e.rotation.y = targetYaw;
 
         if (spec.aiMode === 'ram') {
-          // ★突撃特攻型：プレイヤーに向かって一直線に猛スピードで突っ込んでくる！
           const rushSpeed = distToPlayer < 75 ? spec.speed * 1.25 : spec.speed;
           e.position.x += -Math.sin(targetYaw) * rushSpeed;
           e.position.z += -Math.cos(targetYaw) * rushSpeed;
-          e.rotation.z += 0.12; // ドリルのように回転しながら特攻！
+          e.rotation.z += 0.12;
         } else {
-          // ★ビーム射撃型：一定距離を保ちつつ高威力ビームを連射！
           if (distToPlayer > 38) {
             e.position.x += -Math.sin(targetYaw) * spec.speed;
             e.position.z += -Math.cos(targetYaw) * spec.speed;
@@ -1271,7 +1435,6 @@
           }
         }
 
-        // 自機レーザー命中
         let destroyed = false;
         for (let j = lasers.length - 1; j >= 0; j--) {
           if (e.position.distanceTo(lasers[j].position) < spec.size + 1.5) {
@@ -1283,7 +1446,6 @@
           }
         }
 
-        // 追尾ミサイル命中
         if (!destroyed) {
           for (let k = missiles.length - 1; k >= 0; k--) {
             if (e.position.distanceTo(missiles[k].position) < spec.size + 2.2) {
@@ -1308,7 +1470,6 @@
           continue;
         }
 
-        // ★特攻＆接触大ダメージ判定！
         if (distToPlayer < spec.size + 1.6) {
           createExplosion(e.position, 0xff3333, 22);
           scene.remove(e);
