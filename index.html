@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>SPACE Z - 広大な宇宙と資材クラフト</title>
+  <title>SPACE Z - NEXT GEN VOYAGE</title>
   <style>
     * { box-sizing: border-box; user-select: none; }
     body { margin: 0; overflow: hidden; background-color: #000208; font-family: 'Segoe UI', 'Hiragino Kaku Gothic ProN', sans-serif; color: #fff; }
@@ -10,40 +10,43 @@
     .overlay {
       position: absolute; inset: 0; display: flex; flex-direction: column;
       justify-content: center; align-items: center;
-      background: radial-gradient(circle at center, rgba(6, 18, 40, 0.55) 0%, rgba(0, 2, 10, 0.88) 100%);
+      background: radial-gradient(circle at center, rgba(6, 18, 40, 0.5) 0%, rgba(0, 2, 10, 0.88) 100%);
       z-index: 10;
     }
     .hidden { display: none !important; }
 
     .title-logo {
-      font-size: 62px; font-weight: 900; letter-spacing: 8px;
-      background: linear-gradient(180deg, #ffffff 0%, #38bdf8 55%, #f97316 100%);
+      font-size: 64px; font-weight: 900; letter-spacing: 8px;
+      background: linear-gradient(180deg, #ffffff 0%, #38bdf8 50%, #f97316 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 35px rgba(56, 189, 248, 0.5);
       margin-bottom: 4px;
     }
-    .subtitle { color: #7dd3fc; font-size: 13px; letter-spacing: 4px; margin-bottom: 24px; }
+    .subtitle { color: #7dd3fc; font-size: 13px; letter-spacing: 5px; margin-bottom: 22px; }
 
     .mat-bar {
-      display: flex; gap: 14px; background: rgba(15, 23, 42, 0.85);
-      border: 1px solid #38bdf8; padding: 8px 18px; border-radius: 20px;
+      display: flex; gap: 16px; background: rgba(15, 23, 42, 0.88);
+      border: 1px solid #38bdf8; padding: 9px 22px; border-radius: 25px;
       margin-bottom: 22px; font-size: 14px; font-weight: bold;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.25);
     }
 
-    .menu-buttons { display: flex; flex-direction: column; gap: 12px; width: 330px; }
+    .menu-buttons { display: flex; flex-direction: column; gap: 12px; width: 340px; }
     .menu-btn {
-      padding: 14px 22px; font-size: 17px; font-weight: bold; color: #fff;
-      background: rgba(10, 25, 50, 0.8); border: 1px solid #38bdf8;
+      padding: 15px 22px; font-size: 17px; font-weight: bold; color: #fff;
+      background: rgba(10, 25, 50, 0.82); border: 1px solid #38bdf8;
       border-left: 5px solid #ff7700; border-radius: 6px; cursor: pointer;
       display: flex; justify-content: space-between; align-items: center;
-      transition: all 0.2s;
+      transition: all 0.2s; backdrop-filter: blur(4px);
     }
-    .menu-btn:hover { background: rgba(255, 119, 0, 0.28); border-color: #ffaa00; transform: translateX(6px); }
+    .menu-btn:hover { background: rgba(255, 119, 0, 0.3); border-color: #ffaa00; transform: translateX(8px); }
     .menu-btn span.tag { font-size: 11px; color: #ffaa33; }
 
     .panel {
-      width: 620px; max-width: 94vw; max-height: 88vh; overflow-y: auto;
-      background: rgba(8, 18, 36, 0.95); border: 1px solid #38bdf8;
+      width: 640px; max-width: 94vw; max-height: 88vh; overflow-y: auto;
+      background: rgba(8, 18, 36, 0.96); border: 1px solid #38bdf8;
       border-top: 4px solid #ff7700; border-radius: 10px; padding: 24px;
+      box-shadow: 0 0 45px rgba(0, 0, 0, 0.9);
     }
     .panel-header {
       display: flex; justify-content: space-between; align-items: center;
@@ -51,10 +54,9 @@
     }
     .panel-header h2 { margin: 0; font-size: 22px; color: #70f0ff; }
 
-    /* クラフトレシピ一覧 */
     .craft-card {
       display: flex; justify-content: space-between; align-items: center;
-      background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255,255,255,0.12);
       padding: 12px 16px; border-radius: 8px; margin-bottom: 10px;
     }
     .craft-info h4 { margin: 0 0 4px 0; font-size: 15px; color: #fff; }
@@ -63,17 +65,16 @@
     .craft-btn {
       padding: 9px 16px; background: linear-gradient(90deg, #f97316, #facc15);
       color: #000; font-weight: bold; border: none; border-radius: 5px; cursor: pointer;
-      white-space: nowrap;
     }
     .craft-btn:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
     .crafted-badge { color: #4ade80; font-weight: bold; font-size: 13px; }
 
     .color-row { display: flex; gap: 8px; margin-top: 10px; }
     .color-chip {
-      flex: 1; padding: 7px; border-radius: 5px; border: 2px solid transparent;
+      flex: 1; padding: 8px; border-radius: 5px; border: 2px solid transparent;
       cursor: pointer; text-align: center; font-size: 12px; font-weight: bold;
     }
-    .color-chip.active { border-color: #fff; box-shadow: 0 0 10px #fff; }
+    .color-chip.active { border-color: #fff; box-shadow: 0 0 12px #fff; }
 
     .setting-row {
       display: flex; justify-content: space-between; align-items: center;
@@ -86,18 +87,20 @@
       color: #fff; border: 1px solid #475569; border-radius: 6px; cursor: pointer; font-weight: bold;
     }
 
-    /* プレイ中HUD＆レーダー */
+    /* HUD */
     #hud {
       position: absolute; top: 15px; left: 15px; color: #70f0ff; font-size: 13px;
-      pointer-events: none; background: rgba(5, 15, 30, 0.72); padding: 12px 16px;
-      border-left: 4px solid #ff7700; border-radius: 0 8px 8px 0; line-height: 1.6;
+      pointer-events: none; background: rgba(5, 15, 30, 0.78); padding: 12px 16px;
+      border-left: 4px solid #ff7700; border-radius: 0 8px 8px 0; line-height: 1.65;
     }
     #hp-text { color: #4ade80; font-size: 16px; font-weight: bold; }
-    #loot-hud { color: #fde047; font-weight: bold; margin-top: 2px; }
+    #missile-hud { color: #f472b6; font-weight: bold; }
+    #loot-hud { color: #fde047; font-weight: bold; }
+    #combo-hud { color: #38bdf8; font-weight: bold; }
 
     #radar-box {
       position: absolute; top: 15px; right: 15px; text-align: center;
-      background: rgba(5, 15, 30, 0.75); border: 1px solid #38bdf8;
+      background: rgba(5, 15, 30, 0.78); border: 1px solid #38bdf8;
       border-radius: 10px; padding: 8px;
     }
     #radar { display: block; border-radius: 50%; background: radial-gradient(circle, #0a192f 0%, #020617 100%); }
@@ -105,21 +108,21 @@
       position: absolute; top: 175px; right: 15px; display: flex; flex-direction: column; gap: 6px;
     }
     .mini-btn {
-      padding: 7px 12px; background: rgba(15, 23, 42, 0.88); color: #fff;
+      padding: 7px 12px; background: rgba(15, 23, 42, 0.9); color: #fff;
       border: 1px solid #38bdf8; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold;
     }
     .mini-btn:hover { background: #f97316; color: #000; border-color: #f97316; }
 
     #nora-log {
-      position: absolute; bottom: 15px; left: 15px; width: 320px;
-      background: rgba(5, 15, 30, 0.72); border: 1px solid rgba(56, 189, 248, 0.35);
+      position: absolute; bottom: 15px; left: 15px; width: 330px;
+      background: rgba(5, 15, 30, 0.78); border: 1px solid rgba(56, 189, 248, 0.35);
       border-radius: 8px; padding: 9px 12px; font-size: 12px; color: #a5f3fc; pointer-events: none;
     }
     #toast {
-      position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%);
-      background: rgba(249, 115, 22, 0.9); color: #000; font-weight: bold;
-      padding: 8px 20px; border-radius: 20px; font-size: 14px; opacity: 0;
-      transition: opacity 0.3s; pointer-events: none;
+      position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+      background: linear-gradient(90deg, #f97316, #facc15); color: #000; font-weight: bold;
+      padding: 9px 22px; border-radius: 20px; font-size: 14px; opacity: 0;
+      transition: opacity 0.25s; pointer-events: none; box-shadow: 0 0 20px rgba(250, 204, 21, 0.5);
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -129,7 +132,7 @@
   <!-- メインメニュー -->
   <div id="main-menu" class="overlay">
     <div class="title-logo">SPACE Z</div>
-    <div class="subtitle">GALAXY VOYAGE & CRAFT</div>
+    <div class="subtitle">GALAXY VOYAGE & MECH CRAFT</div>
     <div class="mat-bar">
       <span>🔩 鉄: <b id="m-iron">0</b></span>
       <span>⚡ コア: <b id="m-core">0</b></span>
@@ -143,7 +146,7 @@
         <span>🌐 ノラン（野良セクター）</span><span class="tag">CO-OP</span>
       </button>
       <button class="menu-btn" onclick="openCraftShop()">
-        <span>🔧 資材クラフト工房</span><span class="tag">CRAFT & BUILD</span>
+        <span>🔧 資材クラフト工房</span><span class="tag">BUILD MECH</span>
       </button>
       <button class="menu-btn" onclick="openSettings()">
         <span>⚙️ 設定</span><span class="tag">CONFIG</span>
@@ -151,24 +154,24 @@
     </div>
   </div>
 
-  <!-- 資材クラフト工房（ショップ） -->
+  <!-- 資材クラフト工房 -->
   <div id="shop-menu" class="overlay hidden">
     <div class="panel">
       <div class="panel-header">
-        <h2>🔧 資材クラフト＆機体改造</h2>
+        <h2>🔧 資材クラフト＆機体合体</h2>
         <div style="font-size:13px; color:#fde047; font-weight:bold;">
           🔩<span id="s-iron">0</span> / ⚡<span id="s-core">0</span> / 💎<span id="s-crystal">0</span>
         </div>
       </div>
       <p style="font-size:12px; color:#94a3b8; margin-top:0;">
-        宇宙の敵から奪った資材を組み合わせて、新しいパーツや武装を機体に合体させます！
+        敵機・戦艦から奪った資材を組み合わせて、自機に新しいパーツや兵装を合体させます！
       </p>
 
       <div id="craft-list"></div>
 
-      <div style="margin-top: 14px; font-size: 13px; color: #94a3b8;">機体カラー塗装（無料）</div>
+      <div style="margin-top: 14px; font-size: 13px; color: #94a3b8;">機体メタリック塗装（無料）</div>
       <div class="color-row">
-        <div class="color-chip active" style="background:#b81d24;" onclick="setShipColor(0xb81d24, this)">クリムゾン</div>
+        <div class="color-chip active" style="background:#dc2626;" onclick="setShipColor(0xdc2626, this)">クリムゾン</div>
         <div class="color-chip" style="background:#0284c7;" onclick="setShipColor(0x0284c7, this)">サイバー青</div>
         <div class="color-chip" style="background:#d97706;" onclick="setShipColor(0xd97706, this)">ゴールド</div>
         <div class="color-chip" style="background:#10b981;" onclick="setShipColor(0x10b981, this)">エメラルド</div>
@@ -178,12 +181,12 @@
     </div>
   </div>
 
-  <!-- 設定画面 -->
+  <!-- 設定 -->
   <div id="settings-menu" class="overlay hidden">
     <div class="panel">
-      <div class="panel-header"><h2>⚙️ 設定</h2></div>
+      <div class="panel-header"><h2>⚙️ ゲーム設定</h2></div>
       <div class="setting-row">
-        <span>敵の強さ（難易度）</span>
+        <span>難易度</span>
         <select id="cfg-diff" onchange="saveSettings()">
           <option value="easy">EASY（探索重視）</option>
           <option value="normal" selected>NORMAL（標準）</option>
@@ -208,7 +211,7 @@
     </div>
   </div>
 
-  <!-- ノラン画面 -->
+  <!-- ノラン -->
   <div id="nora-menu" class="overlay hidden">
     <div class="panel" style="text-align:center;">
       <div class="panel-header">
@@ -216,11 +219,11 @@
         <span style="color:#4ade80; font-size:13px;">● 接続良好</span>
       </div>
       <p style="color:#cbd5e1; font-size:14px; line-height:1.6;">
-        広い銀河を旅する他の野良パイロットと合流し、<br>
-        大型戦艦の討伐やレア資材の収集を共に行います。
+        広い銀河を旅する野良エースパイロットと合流し、<br>
+        大型戦艦の撃破やレア資材の収集を共に行います。
       </p>
       <div style="margin:15px 0; padding:12px; background:rgba(0,255,170,0.1); border-radius:8px; color:#6ee7b7; font-weight:bold;">
-        銀河セクターX に 2機の味方パイロットが航行中！
+        銀河セクターX に 2機の味方エース機が航行中！
       </div>
       <button class="menu-btn" style="width:100%; justify-content:center;" onclick="startGame('nora')">
         🚀 野良パイロットと合流して出撃
@@ -232,10 +235,12 @@
   <!-- プレイ中HUD -->
   <div id="hud" class="hidden">
     <strong id="mode-label">【銀河自由航行モード】</strong><br>
-    操作：<b>W</b> 前進 / <b>S</b> 後退 / <b>A・D</b> 旋回 / <b>Space</b> 攻撃<br>
+    <b>W/S</b> 前進・後退 | <b>A/D</b> 旋回 | <b>Shift</b> 超高速ブースト<br>
+    <b>Space</b> ビーム砲 | <b>E</b> 追尾ミサイル斉射<br>
     <div id="hp-text">耐久力: 100 / 100</div>
+    <div id="missile-hud">🚀 追尾ミサイル: READY (100%)</div>
     <div id="loot-hud">🔩 鉄: 0 | ⚡ コア: 0 | 💎 結晶: 0</div>
-    <div id="coord-hud" style="color:#94a3b8; font-size:11px;">座標: X 0, Z 0</div>
+    <div id="combo-hud">撃破数: 0 | 座標: X 0, Z 0</div>
   </div>
 
   <div id="radar-box" class="hidden">
@@ -255,49 +260,49 @@
   <div id="gameover-overlay" class="overlay hidden">
     <div class="panel" style="text-align:center; max-width:420px;">
       <h1 style="color:#ff4455; margin-top:0;">船体大破！</h1>
-      <p style="color:#cbd5e1; font-size:14px;">回収した資材はすべて保管庫に回収されました。</p>
+      <p style="color:#cbd5e1; font-size:14px;">集めた資材はすべて保管庫に回収されました。</p>
       <button class="craft-btn" style="padding:12px 28px; font-size:16px;" onclick="showMainMenu()">ハンガーへ戻る</button>
     </div>
   </div>
 
   <script>
     // ==========================================
-    // セーブデータ＆クラフトレシピ定義
+    // セーブデータ＆クラフトレシピ
     // ==========================================
-    let saveData = JSON.parse(localStorage.getItem('spaceZ_galaxy_v1')) || {
+    let saveData = JSON.parse(localStorage.getItem('spaceZ_galaxy_v2')) || {
       iron: 0,
       core: 0,
       crystal: 0,
-      shipColor: 0xb81d24,
-      crafted: [] // 作成済みパーツIDリスト
+      shipColor: 0xdc2626,
+      crafted: []
     };
     function persist() {
-      localStorage.setItem('spaceZ_galaxy_v1', JSON.stringify(saveData));
+      localStorage.setItem('spaceZ_galaxy_v2', JSON.stringify(saveData));
     }
 
     const RECIPES = [
       {
         id: 'twin_wing',
-        name: '強化ウイング＆重装甲フレーム',
-        desc: '最大HP +50 ＆ 機体に大型装甲ウイングが合体！',
+        name: '重装甲サイドポッド＆可変ウイング',
+        desc: '最大HP +60 ＆ 機体に大型装甲ポッドと追加翼が合体！',
         req: { iron: 3, core: 0, crystal: 0 }
       },
       {
         id: 'plasma_cannon',
-        name: '3連装プラズマキャノン',
-        desc: 'レーザーが3方向同時発射になり火力アップ！',
+        name: '3連装プラズマ・ガトリング砲',
+        desc: 'ビームが3連装になり連射力＆火力が大幅アップ！',
         req: { iron: 2, core: 2, crystal: 0 }
       },
       {
         id: 'hyper_thruster',
-        name: 'ハイパースラスター機関',
-        desc: '巡航スピードと旋回速度が大幅アップ！',
+        name: 'ツイン・ハイパースラスター機関',
+        desc: '巡航速度とShiftブースト速度が超強化！',
         req: { iron: 1, core: 3, crystal: 0 }
       },
       {
         id: 'crystal_nova',
-        name: '結晶レゾナンス砲（5連拡散＆高威力）',
-        desc: '奪った結晶の力で5連装の超威力ビームを放つ究極武装！',
+        name: '結晶レゾナンス砲（5連拡散＆ミサイル強化）',
+        desc: '背面に回転クリスタル炉を合体！5連装ビーム＆ミサイル弾数増加！',
         req: { iron: 4, core: 3, crystal: 2 }
       },
       {
@@ -318,42 +323,40 @@
     }
 
     // ==========================================
-    // 3Dシーン構築（広大な宇宙ワールド）
+    // 3Dシーン構築
     // ==========================================
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1500);
+    const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1600);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     document.body.appendChild(renderer.domElement);
 
-    // 全体を明るく照らすライト（敵が見えなくならないよう強化）
-    const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x334155, 1.3);
+    const hemiLight = new THREE.HemisphereLight(0xe0f2fe, 0x334155, 1.35);
     scene.add(hemiLight);
-    const sunLight = new THREE.DirectionalLight(0xffffff, 1.4);
-    sunLight.position.set(100, 150, 80);
+    const sunLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    sunLight.position.set(120, 180, 90);
     scene.add(sunLight);
 
-    // 広大な宇宙に点在する惑星・天体群
+    // 広大な宇宙の惑星群
     const planets = [];
     const planetConfigs = [
-      { x: 0, y: -145, z: -120, r: 120, color: 0x1d4ed8, ring: false },   // 青い母星
-      { x: 260, y: -30, z: -320, r: 55, color: 0xd97706, ring: true },     // 土星型ガス惑星
-      { x: -280, y: -20, z: -260, r: 45, color: 0x059669, ring: false },   // 緑の惑星
-      { x: 180, y: -25, z: 240, r: 50, color: 0x7c3aed, ring: true },      // 紫の神秘惑星
-      { x: -220, y: -35, z: 220, r: 60, color: 0xdc2626, ring: false }     // 赤い溶岩惑星
+      { x: 0, y: -145, z: -130, r: 120, color: 0x1d4ed8, ring: false },
+      { x: 280, y: -30, z: -340, r: 58, color: 0xd97706, ring: true },
+      { x: -300, y: -20, z: -270, r: 48, color: 0x059669, ring: false },
+      { x: 200, y: -25, z: 260, r: 52, color: 0x7c3aed, ring: true },
+      { x: -240, y: -35, z: 240, r: 62, color: 0xdc2626, ring: false }
     ];
-
     planetConfigs.forEach(p => {
       const grp = new THREE.Group();
       const mesh = new THREE.Mesh(
         new THREE.SphereGeometry(p.r, 32, 32),
-        new THREE.MeshPhongMaterial({ color: p.color, shininess: 20 })
+        new THREE.MeshPhongMaterial({ color: p.color, shininess: 25 })
       );
       grp.add(mesh);
       if (p.ring) {
         const ring = new THREE.Mesh(
-          new THREE.RingGeometry(p.r * 1.3, p.r * 1.8, 32),
+          new THREE.RingGeometry(p.r * 1.3, p.r * 1.85, 32),
           new THREE.MeshBasicMaterial({ color: 0xfde68a, side: THREE.DoubleSide, transparent: true, opacity: 0.45 })
         );
         ring.rotation.x = Math.PI / 2.4;
@@ -364,107 +367,146 @@
       planets.push({ mesh: grp, x: p.x, z: p.z, r: p.r });
     });
 
-    // 宇宙ステーション
+    // 巨大宇宙ステーション
     const stationGroup = new THREE.Group();
     const stCore = new THREE.Mesh(
       new THREE.IcosahedronGeometry(18, 1),
-      new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.7, roughness: 0.3, flatShading: true })
+      new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.75, roughness: 0.25, flatShading: true })
     );
     const stRing = new THREE.Mesh(
-      new THREE.TorusGeometry(26, 1.5, 8, 24),
+      new THREE.TorusGeometry(28, 1.6, 8, 28),
       new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
     );
     stRing.rotation.x = Math.PI / 2;
     stationGroup.add(stCore, stRing);
-    stationGroup.position.set(45, 10, -140);
+    stationGroup.position.set(55, 12, -150);
     scene.add(stationGroup);
 
-    // 広域スターフィールド（1200x1200の範囲に分布）
+    // 星空＆グリッド
     const starGeo = new THREE.BufferGeometry();
     const starPos = [];
-    for (let i = 0; i < 3500; i++) {
-      starPos.push((Math.random() - 0.5) * 1400, (Math.random() - 0.5) * 300, (Math.random() - 0.5) * 1400);
+    for (let i = 0; i < 3800; i++) {
+      starPos.push((Math.random() - 0.5) * 1500, (Math.random() - 0.5) * 320, (Math.random() - 0.5) * 1500);
     }
     starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
     const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 1.1 }));
     scene.add(stars);
 
-    // 空間の距離感がつかみやすい宇宙グリッドライン（うっすら表示）
-    const gridHelper = new THREE.GridHelper(1200, 40, 0x1e3a8a, 0x0f172a);
-    gridHelper.position.y = -12;
+    const gridHelper = new THREE.GridHelper(1400, 45, 0x1e3a8a, 0x0f172a);
+    gridHelper.position.y = -14;
     scene.add(gridHelper);
 
     // ==========================================
-    // 自機（プレイヤー宇宙船）＆クラフトパーツ合体
+    // ★超カッコいい自機3Dモデル（多層メカ造形＋パーツ合体）
     // ==========================================
     function buildPlayerShip(colorHex, craftedList) {
       const group = new THREE.Group();
-      const hullMat = new THREE.MeshStandardMaterial({ color: colorHex, metalness: 0.65, roughness: 0.25 });
-      const ventMat = new THREE.MeshBasicMaterial({ color: 0xff8800 });
-      const thrusterMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+      const hullMat = new THREE.MeshStandardMaterial({ color: colorHex, metalness: 0.75, roughness: 0.22 });
+      const darkMetal = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.85, roughness: 0.3 });
+      const silverMetal = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.9, roughness: 0.2 });
+      const glowCyan = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+      const glowOrange = new THREE.MeshBasicMaterial({ color: 0xff8800 });
 
-      // メイン胴体
-      const body = new THREE.Mesh(new THREE.ConeGeometry(2.0, 5.2, 4), hullMat);
-      body.rotation.x = -Math.PI / 2;
-      body.scale.set(1.3, 1.0, 0.35);
-      body.name = 'hull';
-      group.add(body);
+      // 1. 鋭利な機首（ノーズコーン）＆中央胴体
+      const nose = new THREE.Mesh(new THREE.ConeGeometry(1.1, 4.2, 4), hullMat);
+      nose.rotation.x = -Math.PI / 2;
+      nose.scale.set(1.2, 1.0, 0.45);
+      nose.position.set(0, 0, -2.2);
+      group.add(nose);
 
-      // キャノピー
+      const coreHull = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.75, 4.2), hullMat);
+      coreHull.position.set(0, 0, 0.6);
+      group.add(coreHull);
+
+      // 背面の発光エネルギーライン
+      const spineGlow = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.8, 3.6), glowCyan);
+      spineGlow.position.set(0, 0.05, 0.5);
+      group.add(spineGlow);
+
+      // 2. スモークキャノピー（コックピット）
       const canopy = new THREE.Mesh(
-        new THREE.BoxGeometry(0.9, 0.45, 1.6),
-        new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
+        new THREE.ConeGeometry(0.65, 2.2, 4),
+        new THREE.MeshStandardMaterial({ color: 0x0f172a, emissive: 0x0284c7, emissiveIntensity: 0.4, metalness: 0.95, roughness: 0.05 })
       );
-      canopy.position.set(0, 0.45, -0.3);
+      canopy.rotation.x = -Math.PI / 2;
+      canopy.scale.set(1.0, 1.0, 0.55);
+      canopy.position.set(0, 0.52, -0.5);
       group.add(canopy);
 
-      // 基本ウイング＆オレンジ放熱ダクト＆スラスター
+      // 3. 左右の主翼・前進カナード翼・垂直尾翼・レーザーポッド・スラスター
       [-1, 1].forEach(side => {
-        const wing = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.22, 2.2), hullMat);
-        wing.position.set(side * 1.7, 0, 0.8);
-        wing.rotation.y = side * -0.3;
-        wing.name = 'hull';
-        group.add(wing);
+        // 前進カナード翼（前方の小翼）
+        const canard = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.12, 0.9), hullMat);
+        canard.position.set(side * 1.3, 0.05, -1.2);
+        canard.rotation.y = side * 0.35;
+        group.add(canard);
 
-        const vent = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.28, 1.0), ventMat);
-        vent.position.set(side * 1.3, 0.12, 0.9);
-        group.add(vent);
+        // メインデルタウイング（後退主翼）
+        const mainWing = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.16, 2.0), hullMat);
+        mainWing.position.set(side * 2.2, -0.05, 1.1);
+        mainWing.rotation.y = side * -0.42;
+        mainWing.rotation.z = side * -0.08;
+        group.add(mainWing);
 
-        const flame = new THREE.Mesh(new THREE.ConeGeometry(0.45, 2.4, 8), thrusterMat);
+        // ウイング先端のレーザー砲身
+        const wingGun = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 2.6, 8), silverMetal);
+        wingGun.rotation.x = Math.PI / 2;
+        wingGun.position.set(side * 3.5, -0.1, 0.6);
+        group.add(wingGun);
+
+        // 斜め垂直尾翼（ツインテール）
+        const tailFin = new THREE.Mesh(new THREE.BoxGeometry(0.14, 1.35, 1.5), hullMat);
+        tailFin.position.set(side * 1.15, 0.72, 1.8);
+        tailFin.rotation.z = side * -0.32;
+        group.add(tailFin);
+
+        // オレンジ色のインテーク発光ダクト
+        const intake = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.48, 1.2), glowOrange);
+        intake.position.set(side * 1.25, 0.05, 0.2);
+        group.add(intake);
+
+        // エンジンノズル＆スラスター炎
+        const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.55, 0.8, 8), darkMetal);
+        nozzle.rotation.x = Math.PI / 2;
+        nozzle.position.set(side * 0.75, 0, 2.8);
+        group.add(nozzle);
+
+        const flame = new THREE.Mesh(new THREE.ConeGeometry(0.42, 2.8, 8), glowCyan);
         flame.rotation.x = Math.PI / 2;
-        flame.position.set(side * 0.9, 0, 3.3);
+        flame.position.set(side * 0.75, 0, 4.2);
         flame.name = 'thruster';
         group.add(flame);
       });
 
-      // ★クラフト済みパーツを3Dモデルに実際に合体させる！
+      // ★クラフト合体パーツ（見た目もゴツくパワーアップ！）
       if (craftedList.includes('twin_wing')) {
         [-1, 1].forEach(side => {
-          const extWing = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.28, 1.4), hullMat);
-          extWing.position.set(side * 3.1, 0.1, 1.1);
-          extWing.rotation.z = side * 0.25;
-          extWing.name = 'hull';
-          group.add(extWing);
+          const armorPod = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.65, 2.8), darkMetal);
+          armorPod.position.set(side * 2.3, 0.15, 0.8);
+          const armorTrim = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.2, 2.4), hullMat);
+          armorTrim.position.set(side * 2.3, 0.4, 0.8);
+          group.add(armorPod, armorTrim);
         });
       }
       if (craftedList.includes('plasma_cannon') || craftedList.includes('crystal_nova')) {
         [-1, 1].forEach(side => {
-          const gun = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.18, 0.22, 2.6, 8),
+          const heavyCannon = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.22, 0.28, 3.2, 8),
             new THREE.MeshBasicMaterial({ color: 0xfacc15 })
           );
-          gun.rotation.x = Math.PI / 2;
-          gun.position.set(side * 2.2, 0.2, -0.6);
-          group.add(gun);
+          heavyCannon.rotation.x = Math.PI / 2;
+          heavyCannon.position.set(side * 1.8, 0.35, -0.5);
+          group.add(heavyCannon);
         });
       }
       if (craftedList.includes('crystal_nova')) {
-        const coreCrystal = new THREE.Mesh(
-          new THREE.OctahedronGeometry(0.65),
+        const reactor = new THREE.Mesh(
+          new THREE.OctahedronGeometry(0.75),
           new THREE.MeshBasicMaterial({ color: 0xe879f9 })
         );
-        coreCrystal.position.set(0, 0.75, 0.6);
-        group.add(coreCrystal);
+        reactor.position.set(0, 0.9, 1.2);
+        reactor.name = 'spinPart';
+        group.add(reactor);
       }
 
       return group;
@@ -484,77 +526,108 @@
     }
 
     // ==========================================
-    // 敵の生成（いろいろな形＆ハッキリ見える発光＋マーカー付き）
+    // ★超カッコいい敵機・戦艦3Dモデル（4種類）
     // ==========================================
     const ENEMY_TYPES = [
       {
-        type: 'scout', name: '偵察ドローン', hp: 1, speed: 0.28, size: 2.2,
-        bodyColor: 0x38bdf8, glowColor: 0x00ffff,
+        type: 'stealth', name: 'ステルス迎撃機', hp: 2, speed: 0.32, size: 2.6,
+        hullColor: 0x1e293b, trimColor: 0x06b6d4, glowColor: 0x22d3ee, canShoot: false,
         drops: { iron: 1, core: 0, crystal: 0 }
       },
       {
-        type: 'interceptor', name: '双胴迎撃機', hp: 2, speed: 0.34, size: 2.6,
-        bodyColor: 0xe879f9, glowColor: 0xff00ff,
+        type: 'twin_striker', name: '双胴重攻撃機', hp: 3, speed: 0.35, size: 3.0,
+        hullColor: 0x311042, trimColor: 0xd946ef, glowColor: 0xf0abfc, canShoot: true,
         drops: { iron: 1, core: 1, crystal: 0 }
       },
       {
-        type: 'frigate', name: '重装甲フリゲート', hp: 4, speed: 0.18, size: 3.4,
-        bodyColor: 0xfb923c, glowColor: 0xffaa00,
+        type: 'cruiser', name: '重力リング巡洋艦', hp: 5, speed: 0.20, size: 3.8,
+        hullColor: 0x431407, trimColor: 0xf97316, glowColor: 0xfdba74, canShoot: true,
         drops: { iron: 2, core: 1, crystal: 0 }
       },
       {
-        type: 'battleship', name: '銀河戦艦ボス', hp: 8, speed: 0.12, size: 5.0,
-        bodyColor: 0xf43f5e, glowColor: 0xff2244,
+        type: 'dreadnought', name: '超弩級ドレッドノート戦艦', hp: 12, speed: 0.13, size: 6.2,
+        hullColor: 0x450a0a, trimColor: 0xf43f5e, glowColor: 0xff2244, canShoot: true,
         drops: { iron: 3, core: 2, crystal: 1 }
       }
     ];
 
     function createEnemyMesh(spec) {
       const grp = new THREE.Group();
-      const mainMat = new THREE.MeshStandardMaterial({
-        color: spec.bodyColor, emissive: spec.bodyColor, emissiveIntensity: 0.35,
-        metalness: 0.5, roughness: 0.3
+      const darkHull = new THREE.MeshStandardMaterial({ color: spec.hullColor, metalness: 0.85, roughness: 0.25 });
+      const armorMat = new THREE.MeshStandardMaterial({
+        color: spec.trimColor, emissive: spec.trimColor, emissiveIntensity: 0.3, metalness: 0.7, roughness: 0.25
       });
       const neonMat = new THREE.MeshBasicMaterial({ color: spec.glowColor });
 
-      if (spec.type === 'scout') {
-        // 鋭い三角形ドローン＋発光リング
-        const cone = new THREE.Mesh(new THREE.ConeGeometry(1.6, 3.6, 3), mainMat);
-        cone.rotation.x = Math.PI / 2;
-        const ring = new THREE.Mesh(new THREE.TorusGeometry(1.8, 0.12, 6, 16), neonMat);
-        grp.add(cone, ring);
-      } else if (spec.type === 'interceptor') {
-        // 双胴（ツインドリル）機体
-        [-1.3, 1.3].forEach(ox => {
-          const pod = new THREE.Mesh(new THREE.ConeGeometry(0.9, 4.2, 6), mainMat);
+      if (spec.type === 'stealth') {
+        // 逆ガル翼＋ツインノズルのステルス戦闘機
+        const nose = new THREE.Mesh(new THREE.ConeGeometry(1.1, 4.4, 4), armorMat);
+        nose.rotation.x = Math.PI / 2;
+        nose.scale.set(1.3, 1.0, 0.4);
+        grp.add(nose);
+
+        [-1, 1].forEach(s => {
+          const wing = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.16, 1.5), darkHull);
+          wing.position.set(s * 1.8, -0.1, -0.3);
+          wing.rotation.y = s * 0.4;
+          wing.rotation.z = s * 0.2;
+          const edge = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.18, 0.25), neonMat);
+          edge.position.set(s * 1.8, -0.1, 0.4);
+          edge.rotation.y = s * 0.4;
+          grp.add(wing, edge);
+        });
+      } else if (spec.type === 'twin_striker') {
+        // 双胴重攻撃機（2本の鋭い船体＋中央エネルギーコア）
+        [-1.5, 1.5].forEach(ox => {
+          const pod = new THREE.Mesh(new THREE.ConeGeometry(0.95, 5.0, 5), armorMat);
           pod.rotation.x = Math.PI / 2;
           pod.position.x = ox;
-          grp.add(pod);
+          const tail = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1.4, 1.4), darkHull);
+          tail.position.set(ox, 0.7, -1.5);
+          grp.add(pod, tail);
         });
-        const bridge = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.4, 1.2), neonMat);
-        grp.add(bridge);
-      } else if (spec.type === 'frigate') {
-        // 六角柱＋回転コアリング
-        const hull = new THREE.Mesh(new THREE.CylinderGeometry(2.0, 2.0, 4.5, 6), mainMat);
-        hull.rotation.x = Math.PI / 2;
-        const halo = new THREE.Mesh(new THREE.TorusGeometry(2.8, 0.2, 8, 20), neonMat);
-        halo.name = 'spinRing';
-        grp.add(hull, halo);
+        const core = new THREE.Mesh(new THREE.OctahedronGeometry(1.1), neonMat);
+        core.name = 'spinPart';
+        const bridge = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.4, 1.4), darkHull);
+        grp.add(core, bridge);
+      } else if (spec.type === 'cruiser') {
+        // 重力リング巡洋艦
+        const mainHull = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 2.2, 6.2, 6), darkHull);
+        mainHull.rotation.x = Math.PI / 2;
+        const prow = new THREE.Mesh(new THREE.ConeGeometry(2.2, 2.5, 6), armorMat);
+        prow.rotation.x = Math.PI / 2;
+        prow.position.z = 4.2;
+
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(3.4, 0.24, 8, 24), neonMat);
+        ring.name = 'spinPart';
+        grp.add(mainHull, prow, ring);
       } else {
-        // 巨大戦艦ボス（十字要塞）
-        const core = new THREE.Mesh(new THREE.OctahedronGeometry(3.6), mainMat);
-        const cross1 = new THREE.Mesh(new THREE.BoxGeometry(9.5, 1.2, 2.2), mainMat);
-        const cross2 = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.2, 9.5), neonMat);
-        grp.add(core, cross1, cross2);
+        // 超弩級ドレッドノート戦艦（巨大艦橋＋主砲塔＋両舷装甲）
+        const hull = new THREE.Mesh(new THREE.BoxGeometry(4.4, 2.2, 11.5), darkHull);
+        const bow = new THREE.Mesh(new THREE.ConeGeometry(3.2, 4.0, 4), armorMat);
+        bow.rotation.x = Math.PI / 2;
+        bow.position.z = 7.5;
+
+        const bridge = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.8, 3.2), armorMat);
+        bridge.position.set(0, 1.8, -2.0);
+
+        [-2.8, 2.8].forEach(ox => {
+          const sponson = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.4, 8.0), armorMat);
+          sponson.position.set(ox, 0, -0.5);
+          const rail = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 8.2), neonMat);
+          rail.position.set(ox * 1.25, 0.4, -0.5);
+          grp.add(sponson, rail);
+        });
+        grp.add(hull, bow, bridge);
       }
 
-      // ★暗い宇宙でも絶対に見逃さない「頭上の赤いターゲットマーカー」
+      // 頭上のロックオンマーカー（見やすさ抜群）
       const marker = new THREE.Mesh(
-        new THREE.OctahedronGeometry(0.75),
+        new THREE.OctahedronGeometry(0.8),
         new THREE.MeshBasicMaterial({ color: 0xff2244, wireframe: true })
       );
-      marker.position.y = spec.size + 1.4;
-      marker.name = 'marker';
+      marker.position.y = spec.size + 1.5;
+      marker.name = 'spinPart';
       grp.add(marker);
 
       return grp;
@@ -563,14 +636,17 @@
     // ==========================================
     // ゲーム状態＆UI制御
     // ==========================================
-    let gameState = 'MENU'; // MENU, PLAYING, CRAFT_PAUSE, GAMEOVER
+    let gameState = 'MENU';
     let gameMode = 'solo';
     let pausedFromPlay = false;
 
-    let hp = 100, maxHp = 100;
-    let shipYaw = 0; // 自機の向き（360度自由旋回）
+    let hp = 100, maxHp = 100, kills = 0;
+    let shipYaw = 0;
+    let missileCharge = 100; // 100%で発射可能
 
     const lasers = [];
+    const enemyBullets = [];
+    const missiles = [];
     const enemies = [];
     const loots = [];
     const particles = [];
@@ -584,12 +660,20 @@
       t._timer = setTimeout(() => t.style.opacity = 0, 2200);
     }
 
-    function updateAllMaterialCounters() {
+    function updateHUD() {
       ['m-iron', 's-iron'].forEach(id => document.getElementById(id).textContent = saveData.iron);
       ['m-core', 's-core'].forEach(id => document.getElementById(id).textContent = saveData.core);
       ['m-crystal', 's-crystal'].forEach(id => document.getElementById(id).textContent = saveData.crystal);
       document.getElementById('loot-hud').textContent = `🔩 鉄: ${saveData.iron} | ⚡ コア: ${saveData.core} | 💎 結晶: ${saveData.crystal}`;
       document.getElementById('hp-text').textContent = `耐久力: ${hp} / ${maxHp}`;
+      const mHud = document.getElementById('missile-hud');
+      if (missileCharge >= 100) {
+        mHud.textContent = '🚀 追尾ミサイル: READY! [Eキーで斉射]';
+        mHud.style.color = '#f472b6';
+      } else {
+        mHud.textContent = `🚀 追尾ミサイル装填中: ${Math.floor(missileCharge)}%`;
+        mHud.style.color = '#94a3b8';
+      }
     }
 
     function hideAllOverlays() {
@@ -603,7 +687,7 @@
       clearEntities();
       hideAllOverlays();
       ['hud', 'radar-box', 'play-btns', 'nora-log'].forEach(id => document.getElementById(id).classList.add('hidden'));
-      updateAllMaterialCounters();
+      updateHUD();
       document.getElementById('main-menu').classList.remove('hidden');
       shipGroup.position.set(0, 0, 0);
       shipGroup.rotation.set(0, 0, 0);
@@ -615,17 +699,14 @@
       if (fromPlay) gameState = 'CRAFT_PAUSE';
       hideAllOverlays();
       renderCraftList();
-      updateAllMaterialCounters();
+      updateHUD();
       document.getElementById('shop-menu').classList.remove('hidden');
     }
 
     function closeSubMenu() {
       hideAllOverlays();
-      if (pausedFromPlay) {
-        gameState = 'PLAYING';
-      } else {
-        showMainMenu();
-      }
+      if (pausedFromPlay) gameState = 'PLAYING';
+      else showMainMenu();
     }
 
     function renderCraftList() {
@@ -634,7 +715,6 @@
       RECIPES.forEach(r => {
         const isCrafted = !r.repeatable && saveData.crafted.includes(r.id);
         const canAfford = saveData.iron >= r.req.iron && saveData.core >= r.req.core && saveData.crystal >= r.req.crystal;
-
         const reqParts = [];
         if (r.req.iron > 0) reqParts.push(`🔩鉄×${r.req.iron}`);
         if (r.req.core > 0) reqParts.push(`⚡コア×${r.req.core}`);
@@ -650,7 +730,7 @@
           </div>
           <div>
             ${isCrafted
-              ? '<span class="crafted-badge">✅ 装着済み</span>'
+              ? '<span class="crafted-badge">✅ 合体済み</span>'
               : `<button class="craft-btn" ${canAfford ? '' : 'disabled'} onclick="craftItem('${r.id}')">クラフトする</button>`
             }
           </div>
@@ -661,27 +741,26 @@
 
     function craftItem(id) {
       const r = RECIPES.find(x => x.id === id);
-      if (!r) return;
-      if (saveData.iron < r.req.iron || saveData.core < r.req.core || saveData.crystal < r.req.crystal) return;
+      if (!r || saveData.iron < r.req.iron || saveData.core < r.req.core || saveData.crystal < r.req.crystal) return;
 
       saveData.iron -= r.req.iron;
       saveData.core -= r.req.core;
       saveData.crystal -= r.req.crystal;
 
       if (r.id === 'repair_kit') {
-        maxHp = 100 + (saveData.crafted.includes('twin_wing') ? 50 : 0);
+        maxHp = 100 + (saveData.crafted.includes('twin_wing') ? 60 : 0);
         hp = maxHp;
         showToast('✨ ナノリペア完了！耐久力が全回復しました！');
       } else {
         saveData.crafted.push(r.id);
-        if (r.id === 'twin_wing') { maxHp += 50; hp += 50; }
+        if (r.id === 'twin_wing') { maxHp += 60; hp += 60; }
         rebuildPlayerShip();
-        showToast(`🔧 「${r.name}」をクラフトして機体に合体しました！`);
+        showToast(`🔧 「${r.name}」を機体に合体しました！`);
       }
 
       persist();
       renderCraftList();
-      updateAllMaterialCounters();
+      updateHUD();
     }
 
     function setShipColor(hex, el) {
@@ -692,18 +771,11 @@
       el.classList.add('active');
     }
 
-    function openSettings() {
-      hideAllOverlays();
-      document.getElementById('settings-menu').classList.remove('hidden');
-    }
-
-    function openNoraLobby() {
-      hideAllOverlays();
-      document.getElementById('nora-menu').classList.remove('hidden');
-    }
+    function openSettings() { hideAllOverlays(); document.getElementById('settings-menu').classList.remove('hidden'); }
+    function openNoraLobby() { hideAllOverlays(); document.getElementById('nora-menu').classList.remove('hidden'); }
 
     function clearEntities() {
-      [lasers, enemies, loots, particles, allies].forEach(arr => {
+      [lasers, enemyBullets, missiles, enemies, loots, particles, allies].forEach(arr => {
         arr.forEach(o => scene.remove(o));
         arr.length = 0;
       });
@@ -720,16 +792,17 @@
       clearEntities();
       hideAllOverlays();
 
-      maxHp = 100 + (saveData.crafted.includes('twin_wing') ? 50 : 0);
+      maxHp = 100 + (saveData.crafted.includes('twin_wing') ? 60 : 0);
       hp = maxHp;
+      kills = 0;
+      missileCharge = 100;
       shipGroup.position.set(0, 0, 0);
       shipYaw = 0;
 
       document.getElementById('mode-label').textContent = mode === 'nora' ? '【銀河自由航行 - ノラン共同戦線】' : '【銀河自由航行 - SOLO探索】';
       ['hud', 'radar-box', 'play-btns'].forEach(id => document.getElementById(id).classList.remove('hidden'));
-      updateAllMaterialCounters();
+      updateHUD();
 
-      // 周囲の宇宙に最初から敵を10体配置
       for (let i = 0; i < 10; i++) spawnEnemyAroundPlayer(true);
 
       if (mode === 'nora') {
@@ -740,7 +813,7 @@
         const cols = [0x0284c7, 0xd97706];
         names.forEach((n, idx) => {
           const ally = buildPlayerShip(cols[idx], ['twin_wing']);
-          ally.position.set(idx === 0 ? -15 : 15, 0, -10);
+          ally.position.set(idx === 0 ? -16 : 16, 0, -10);
           ally.userData = { name: n, angle: idx * 3, cd: 0 };
           scene.add(ally);
           allies.push(ally);
@@ -750,15 +823,14 @@
     }
 
     // ==========================================
-    // 操縦＆戦闘＆資材ドロップロジック
+    // 操縦＆武器（ビーム＋追尾ミサイル斉射）
     // ==========================================
     const keys = {};
     window.addEventListener('keydown', (e) => {
       keys[e.code] = true;
-      if (e.code === 'Space' && gameState === 'PLAYING') {
-        e.preventDefault();
-        firePlayerWeapons();
-      }
+      if (gameState !== 'PLAYING') return;
+      if (e.code === 'Space') { e.preventDefault(); firePlayerWeapons(); }
+      if (e.code === 'KeyE') { e.preventDefault(); fireHomingMissiles(); }
     });
     window.addEventListener('keyup', (e) => keys[e.code] = false);
 
@@ -773,36 +845,62 @@
       if (hasNova) {
         angles = [-0.16, -0.08, 0, 0.08, 0.16];
         color = 0xe879f9;
-        power = 2;
+        power = 2.2;
       } else if (hasPlasma) {
-        angles = [-0.09, 0, 0.09];
+        angles = [-0.08, 0, 0.08];
         color = 0xfacc15;
-        power = 1.5;
+        power = 1.6;
       }
 
       angles.forEach(spread => {
         const dir = new THREE.Vector3(-Math.sin(shipYaw + spread), 0, -Math.cos(shipYaw + spread));
         const laser = new THREE.Mesh(
-          new THREE.BoxGeometry(0.28, 0.28, 4.0),
+          new THREE.BoxGeometry(0.3, 0.3, 4.4),
           new THREE.MeshBasicMaterial({ color })
         );
-        laser.position.copy(shipGroup.position).addScaledVector(dir, 3.0);
+        laser.position.copy(shipGroup.position).addScaledVector(dir, 3.2);
         laser.rotation.y = shipYaw + spread;
-        laser.userData = { vel: dir.multiplyScalar(2.4), life: 75, power };
+        laser.userData = { vel: dir.multiplyScalar(2.6), life: 75, power };
         scene.add(laser);
         lasers.push(laser);
       });
     }
 
+    // ★新兵器：追尾ミサイル斉射（Eキー）
+    function fireHomingMissiles() {
+      if (missileCharge < 100 || enemies.length === 0) {
+        if (enemies.length === 0) showToast('周囲にロックオンできる敵がいません！');
+        return;
+      }
+      missileCharge = 0;
+      const count = saveData.crafted.includes('crystal_nova') ? 6 : 4;
+
+      for (let i = 0; i < count; i++) {
+        const target = enemies[i % enemies.length];
+        const mMesh = new THREE.Mesh(
+          new THREE.ConeGeometry(0.35, 1.8, 6),
+          new THREE.MeshBasicMaterial({ color: 0xf472b6 })
+        );
+        mMesh.rotation.x = Math.PI / 2;
+        mMesh.position.copy(shipGroup.position);
+        mMesh.position.x += (i - count / 2) * 1.4;
+        mMesh.userData = { target, speed: 1.65, life: 130, power: 3.5 };
+        scene.add(mMesh);
+        missiles.push(mMesh);
+      }
+      showToast('🚀 追尾ミサイル一斉発射！！');
+      updateHUD();
+    }
+
     function spawnEnemyAroundPlayer(initial = false) {
       const roll = Math.random();
       let spec = ENEMY_TYPES[0];
-      if (roll > 0.88) spec = ENEMY_TYPES[3];      // 戦艦ボス
-      else if (roll > 0.65) spec = ENEMY_TYPES[2]; // フリゲート
-      else if (roll > 0.35) spec = ENEMY_TYPES[1]; // 双胴迎撃機
+      if (roll > 0.88) spec = ENEMY_TYPES[3];      // 超弩級戦艦
+      else if (roll > 0.64) spec = ENEMY_TYPES[2]; // 重力リング巡洋艦
+      else if (roll > 0.34) spec = ENEMY_TYPES[1]; // 双胴重攻撃機
 
       const mesh = createEnemyMesh(spec);
-      const dist = initial ? (45 + Math.random() * 140) : (110 + Math.random() * 90);
+      const dist = initial ? (50 + Math.random() * 140) : (115 + Math.random() * 90);
       const ang = Math.random() * Math.PI * 2;
       mesh.position.set(
         shipGroup.position.x + Math.cos(ang) * dist,
@@ -814,13 +912,12 @@
       mesh.userData = {
         spec,
         hp: Math.ceil(spec.hp * hpMult),
-        aiAngle: Math.random() * Math.PI * 2
+        shootCD: 80 + Math.floor(Math.random() * 80)
       };
       scene.add(mesh);
       enemies.push(mesh);
     }
 
-    // 倒した敵から資材（鉄・コア・結晶）をドロップ
     function dropMaterials(pos, drops) {
       const list = [];
       for (let i = 0; i < drops.iron; i++) list.push({ type: 'iron', color: 0x94a3b8 });
@@ -828,28 +925,26 @@
       for (let i = 0; i < drops.crystal; i++) list.push({ type: 'crystal', color: 0xe879f9 });
 
       list.forEach(item => {
-        const geo = item.type === 'iron'
-          ? new THREE.BoxGeometry(1.1, 1.1, 1.1)
-          : new THREE.OctahedronGeometry(1.15);
+        const geo = item.type === 'iron' ? new THREE.BoxGeometry(1.15, 1.15, 1.15) : new THREE.OctahedronGeometry(1.2);
         const mat = new THREE.MeshStandardMaterial({
-          color: item.color, emissive: item.color, emissiveIntensity: 0.65, metalness: 0.8, roughness: 0.2
+          color: item.color, emissive: item.color, emissiveIntensity: 0.7, metalness: 0.8, roughness: 0.2
         });
         const loot = new THREE.Mesh(geo, mat);
         loot.position.copy(pos);
-        loot.position.x += (Math.random() - 0.5) * 4;
-        loot.position.z += (Math.random() - 0.5) * 4;
+        loot.position.x += (Math.random() - 0.5) * 4.5;
+        loot.position.z += (Math.random() - 0.5) * 4.5;
         loot.userData = { matType: item.type };
         scene.add(loot);
         loots.push(loot);
       });
     }
 
-    function createExplosion(pos, color, count = 14) {
+    function createExplosion(pos, color, count = 16) {
       if (config.gfx === 'low') count = 6;
       for (let i = 0; i < count; i++) {
-        const p = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.45, 0.45), new THREE.MeshBasicMaterial({ color }));
+        const p = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.48, 0.48), new THREE.MeshBasicMaterial({ color }));
         p.position.copy(pos);
-        p.userData.vel = new THREE.Vector3((Math.random() - 0.5) * 1.3, (Math.random() - 0.5) * 1.3, (Math.random() - 0.5) * 1.3);
+        p.userData.vel = new THREE.Vector3((Math.random() - 0.5) * 1.4, (Math.random() - 0.5) * 1.4, (Math.random() - 0.5) * 1.4);
         p.userData.life = 28;
         scene.add(p);
         particles.push(p);
@@ -857,21 +952,18 @@
     }
 
     // ==========================================
-    // ミニマップ（レーダー）描画
+    // ミニマップ（レーダー）
     // ==========================================
     const radarCtx = document.getElementById('radar').getContext('2d');
     function drawRadar() {
       const w = 130, h = 130, cx = w / 2, cy = h / 2;
       radarCtx.clearRect(0, 0, w, h);
 
-      // レーダーの同心円
       radarCtx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
       radarCtx.beginPath(); radarCtx.arc(cx, cy, 30, 0, Math.PI * 2); radarCtx.stroke();
       radarCtx.beginPath(); radarCtx.arc(cx, cy, 60, 0, Math.PI * 2); radarCtx.stroke();
 
-      const scale = 0.28; // レーダー表示倍率
-
-      // 惑星（水色）
+      const scale = 0.28;
       planets.forEach(p => {
         const dx = (p.x - shipGroup.position.x) * scale;
         const dz = (p.z - shipGroup.position.z) * scale;
@@ -881,7 +973,6 @@
         }
       });
 
-      // 資材（黄色）
       loots.forEach(l => {
         const dx = (l.position.x - shipGroup.position.x) * scale;
         const dz = (l.position.z - shipGroup.position.z) * scale;
@@ -891,7 +982,6 @@
         }
       });
 
-      // 敵（赤色）
       enemies.forEach(e => {
         const dx = (e.position.x - shipGroup.position.x) * scale;
         const dz = (e.position.z - shipGroup.position.z) * scale;
@@ -899,11 +989,10 @@
         const clamp = dist > 60 ? 60 / dist : 1;
         radarCtx.fillStyle = '#ff3355';
         radarCtx.beginPath();
-        radarCtx.arc(cx + dx * clamp, cy + dz * clamp, e.userData.spec.type === 'battleship' ? 4.5 : 3, 0, Math.PI * 2);
+        radarCtx.arc(cx + dx * clamp, cy + dz * clamp, e.userData.spec.type === 'dreadnought' ? 5 : 3, 0, Math.PI * 2);
         radarCtx.fill();
       });
 
-      // 自機（中央・向き矢印）
       radarCtx.save();
       radarCtx.translate(cx, cy);
       radarCtx.rotate(-shipYaw);
@@ -915,7 +1004,7 @@
     }
 
     // ==========================================
-    // メインアニメーションループ
+    // メインループ
     // ==========================================
     function animate() {
       requestAnimationFrame(animate);
@@ -923,10 +1012,20 @@
 
       planets.forEach(p => p.mesh.rotation.y += 0.001);
       stationGroup.rotation.y += 0.003;
-      shipGroup.children.forEach(c => { if (c.name === 'thruster') c.scale.y = 0.85 + Math.random() * 0.4; });
+
+      const isBoosting = (keys['ShiftLeft'] || keys['ShiftRight']) && gameState === 'PLAYING';
+      shipGroup.children.forEach(c => {
+        if (c.name === 'thruster') {
+          c.scale.y = isBoosting ? (1.7 + Math.random() * 0.5) : (0.85 + Math.random() * 0.35);
+          c.material.color.setHex(isBoosting ? 0xffffff : 0x38bdf8);
+        }
+        if (c.name === 'spinPart') c.rotation.y += 0.05;
+      });
 
       if (gameState === 'MENU') {
-        camera.position.set(Math.sin(now * 0.0004) * 11, 5.5, Math.cos(now * 0.0004) * 11);
+        camera.fov = 65;
+        camera.updateProjectionMatrix();
+        camera.position.set(Math.sin(now * 0.00045) * 11, 5.0, Math.cos(now * 0.00045) * 11);
         camera.lookAt(0, 0, 0);
         renderer.render(scene, camera);
         return;
@@ -937,45 +1036,53 @@
         return;
       }
 
-      // 1. 360度自由旋回＆推進操縦
+      // ミサイルエネルギー自然回復
+      if (missileCharge < 100) {
+        missileCharge = Math.min(100, missileCharge + 0.25);
+        if (missileCharge === 100) updateHUD();
+      }
+
+      // 1. 操縦＆Shift高速ブースト
       const hasHyper = saveData.crafted.includes('hyper_thruster');
-      const turnSpeed = hasHyper ? 0.048 : 0.035;
-      const maxSpeed = hasHyper ? 0.78 : 0.52;
+      const turnSpeed = hasHyper ? 0.05 : 0.036;
+      const baseMaxSpeed = hasHyper ? 0.8 : 0.55;
+      const boostMult = isBoosting ? 1.75 : 1.0;
 
       let bankRoll = 0;
-      if (keys['KeyA'] || keys['ArrowLeft'])  { shipYaw += turnSpeed; bankRoll = 0.42; }
-      if (keys['KeyD'] || keys['ArrowRight']) { shipYaw -= turnSpeed; bankRoll = -0.42; }
+      if (keys['KeyA'] || keys['ArrowLeft'])  { shipYaw += turnSpeed; bankRoll = 0.45; }
+      if (keys['KeyD'] || keys['ArrowRight']) { shipYaw -= turnSpeed; bankRoll = -0.45; }
 
-      let moveSpeed = 0.14; // 常にゆっくり宇宙を巡航
-      if (keys['KeyW'] || keys['ArrowUp'])   moveSpeed = maxSpeed;
-      if (keys['KeyS'] || keys['ArrowDown']) moveSpeed = -0.22;
+      let moveSpeed = 0.15;
+      if (keys['KeyW'] || keys['ArrowUp'] || isBoosting) moveSpeed = baseMaxSpeed * boostMult;
+      if (keys['KeyS'] || keys['ArrowDown']) moveSpeed = -0.24;
 
       const forwardX = -Math.sin(shipYaw);
       const forwardZ = -Math.cos(shipYaw);
       shipGroup.position.x += forwardX * moveSpeed;
       shipGroup.position.z += forwardZ * moveSpeed;
-
       shipGroup.rotation.y = shipYaw;
-      shipGroup.rotation.z += (bankRoll - shipGroup.rotation.z) * 0.12;
+      shipGroup.rotation.z += (bankRoll - shipGroup.rotation.z) * 0.14;
 
-      document.getElementById('coord-hud').textContent =
-        `銀河座標: X ${Math.round(shipGroup.position.x)}, Z ${Math.round(shipGroup.position.z)}`;
+      document.getElementById('combo-hud').textContent =
+        `撃破数: ${kills} | 座標: X ${Math.round(shipGroup.position.x)}, Z ${Math.round(shipGroup.position.z)}`;
 
-      // 2. カメラが自機の背後360度を追従
-      const camDist = config.cam === 'high' ? 28 : 13.5;
-      const camHeight = config.cam === 'high' ? 26 : 5.5;
-      const targetCamX = shipGroup.position.x - forwardX * camDist;
-      const targetCamZ = shipGroup.position.z - forwardZ * camDist;
-      camera.position.x += (targetCamX - camera.position.x) * 0.12;
+      // 2. カメラ追従＆ブースト時のFOVスピード演出
+      const targetFov = isBoosting ? 80 : 65;
+      camera.fov += (targetFov - camera.fov) * 0.1;
+      camera.updateProjectionMatrix();
+
+      const camDist = config.cam === 'high' ? 30 : 14.5;
+      const camHeight = config.cam === 'high' ? 28 : 5.8;
+      camera.position.x += (shipGroup.position.x - forwardX * camDist - camera.position.x) * 0.12;
       camera.position.y += (camHeight - camera.position.y) * 0.12;
-      camera.position.z += (targetCamZ - camera.position.z) * 0.12;
-      camera.lookAt(shipGroup.position.x + forwardX * 15, 0.5, shipGroup.position.z + forwardZ * 15);
+      camera.position.z += (shipGroup.position.z - forwardZ * camDist - camera.position.z) * 0.12;
+      camera.lookAt(shipGroup.position.x + forwardX * 16, 0.5, shipGroup.position.z + forwardZ * 16);
 
-      // 3. ノラン味方機の行動
+      // 3. ノラン味方機
       allies.forEach((ally, idx) => {
         ally.userData.angle += 0.015;
-        const tx = shipGroup.position.x + Math.cos(ally.userData.angle + idx * 3) * 18;
-        const tz = shipGroup.position.z + Math.sin(ally.userData.angle + idx * 3) * 18;
+        const tx = shipGroup.position.x + Math.cos(ally.userData.angle + idx * 3) * 19;
+        const tz = shipGroup.position.z + Math.sin(ally.userData.angle + idx * 3) * 19;
         ally.rotation.y = Math.atan2(-(tx - ally.position.x), -(tz - ally.position.z));
         ally.position.x += (tx - ally.position.x) * 0.05;
         ally.position.z += (tz - ally.position.z) * 0.05;
@@ -984,16 +1091,16 @@
         if (ally.userData.cd <= 0 && enemies.length > 0) {
           const target = enemies[0];
           const dir = new THREE.Vector3().subVectors(target.position, ally.position).normalize();
-          const laser = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 3.5), new THREE.MeshBasicMaterial({ color: 0x38bdf8 }));
+          const laser = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.28, 3.8), new THREE.MeshBasicMaterial({ color: 0x38bdf8 }));
           laser.position.copy(ally.position);
-          laser.userData = { vel: dir.multiplyScalar(2.0), life: 60, power: 1 };
+          laser.userData = { vel: dir.multiplyScalar(2.1), life: 60, power: 1 };
           scene.add(laser);
           lasers.push(laser);
-          ally.userData.cd = 55;
+          ally.userData.cd = 50;
         }
       });
 
-      // 4. レーザー更新
+      // 4. 自機レーザー更新
       for (let i = lasers.length - 1; i >= 0; i--) {
         const l = lasers[i];
         l.position.add(l.userData.vel);
@@ -1001,7 +1108,43 @@
         if (l.userData.life <= 0) { scene.remove(l); lasers.splice(i, 1); }
       }
 
-      // 5. 敵の補充＆行動（プレイヤーに近づいて戦う）
+      // 5. 追尾ミサイル更新
+      for (let i = missiles.length - 1; i >= 0; i--) {
+        const m = missiles[i];
+        m.userData.life--;
+        if (m.userData.target && enemies.includes(m.userData.target)) {
+          const dir = new THREE.Vector3().subVectors(m.userData.target.position, m.position).normalize();
+          m.position.addScaledVector(dir, m.userData.speed);
+          m.rotation.y = Math.atan2(-dir.x, -dir.z);
+        } else {
+          m.position.z -= m.userData.speed;
+        }
+        // ミサイルの煙跡
+        if (Math.random() < 0.5) createExplosion(m.position, 0xf472b6, 1);
+        if (m.userData.life <= 0) { scene.remove(m); missiles.splice(i, 1); }
+      }
+
+      // 6. 敵弾更新
+      for (let i = enemyBullets.length - 1; i >= 0; i--) {
+        const b = enemyBullets[i];
+        b.position.add(b.userData.vel);
+        b.userData.life--;
+        if (b.position.distanceTo(shipGroup.position) < 2.2) {
+          createExplosion(b.position, 0xff4444, 8);
+          scene.remove(b);
+          enemyBullets.splice(i, 1);
+          hp = Math.max(0, hp - 10);
+          updateHUD();
+          if (hp <= 0) {
+            gameState = 'GAMEOVER';
+            document.getElementById('gameover-overlay').classList.remove('hidden');
+          }
+          continue;
+        }
+        if (b.userData.life <= 0) { scene.remove(b); enemyBullets.splice(i, 1); }
+      }
+
+      // 7. 敵機AI＆当たり判定
       if (enemies.length < 12) spawnEnemyAroundPlayer(false);
 
       for (let i = enemies.length - 1; i >= 0; i--) {
@@ -1009,58 +1152,82 @@
         const spec = e.userData.spec;
         const distToPlayer = e.position.distanceTo(shipGroup.position);
 
-        // 遠くに行きすぎた敵は再配置
-        if (distToPlayer > 280) {
-          scene.remove(e); enemies.splice(i, 1); continue;
-        }
+        if (distToPlayer > 290) { scene.remove(e); enemies.splice(i, 1); continue; }
 
-        // 頭上のターゲットマーカーとパーツを回転させて視認性アップ
-        e.children.forEach(c => {
-          if (c.name === 'marker') c.rotation.y += 0.08;
-          if (c.name === 'spinRing') c.rotation.z += 0.04;
-        });
+        e.children.forEach(c => { if (c.name === 'spinPart') c.rotation.y += 0.06; });
 
-        // プレイヤーの方へ向かって移動
         const toPlayer = new THREE.Vector3().subVectors(shipGroup.position, e.position);
         const targetYaw = Math.atan2(-toPlayer.x, -toPlayer.z);
         e.rotation.y = targetYaw;
-        if (distToPlayer > 14) {
+
+        if (distToPlayer > 18) {
           e.position.x += -Math.sin(targetYaw) * spec.speed;
           e.position.z += -Math.cos(targetYaw) * spec.speed;
         }
 
-        // レーザー命中判定
+        // 敵からのプラズマ砲撃
+        if (spec.canShoot && distToPlayer < 95) {
+          e.userData.shootCD--;
+          if (e.userData.shootCD <= 0) {
+            const bDir = toPlayer.clone().normalize();
+            const bullet = new THREE.Mesh(
+              new THREE.SphereGeometry(0.45, 8, 8),
+              new THREE.MeshBasicMaterial({ color: 0xff3355 })
+            );
+            bullet.position.copy(e.position);
+            bullet.userData = { vel: bDir.multiplyScalar(0.95), life: 95 };
+            scene.add(bullet);
+            enemyBullets.push(bullet);
+            e.userData.shootCD = spec.type === 'dreadnought' ? 65 : 110;
+          }
+        }
+
+        // レーザー命中
         let destroyed = false;
         for (let j = lasers.length - 1; j >= 0; j--) {
-          if (e.position.distanceTo(lasers[j].position) < spec.size + 1.4) {
+          if (e.position.distanceTo(lasers[j].position) < spec.size + 1.5) {
             e.userData.hp -= lasers[j].userData.power;
             createExplosion(lasers[j].position, spec.glowColor, 6);
             scene.remove(lasers[j]);
             lasers.splice(j, 1);
-
-            if (e.userData.hp <= 0) {
-              createExplosion(e.position, spec.glowColor, 18);
-              dropMaterials(e.position, spec.drops);
-              scene.remove(e);
-              enemies.splice(i, 1);
-              showToast(`💥 ${spec.name}を撃破！資材がドロップ！`);
-              if (gameMode === 'nora' && Math.random() < 0.4) {
-                addNoraLog(`💬 <b>Kaito_JP</b>: 「${spec.name}の撃破を確認！資材を回収しよう！」`);
-              }
-              destroyed = true;
-            }
-            break;
+            if (e.userData.hp <= 0) { destroyed = true; break; }
           }
         }
-        if (destroyed) continue;
 
-        // 接触ダメージ
+        // 追尾ミサイル命中
+        if (!destroyed) {
+          for (let k = missiles.length - 1; k >= 0; k--) {
+            if (e.position.distanceTo(missiles[k].position) < spec.size + 2.2) {
+              e.userData.hp -= missiles[k].userData.power;
+              createExplosion(missiles[k].position, 0xf472b6, 14);
+              scene.remove(missiles[k]);
+              missiles.splice(k, 1);
+              if (e.userData.hp <= 0) { destroyed = true; break; }
+            }
+          }
+        }
+
+        if (destroyed) {
+          createExplosion(e.position, spec.glowColor, 22);
+          dropMaterials(e.position, spec.drops);
+          scene.remove(e);
+          enemies.splice(i, 1);
+          kills++;
+          missileCharge = Math.min(100, missileCharge + 15);
+          updateHUD();
+          showToast(`💥 ${spec.name}を撃破！資材ドロップ！`);
+          if (gameMode === 'nora' && Math.random() < 0.45) {
+            addNoraLog(`💬 <b>Nova_77</b>: 「見事な腕前だ！${spec.name}を沈めたぞ！」`);
+          }
+          continue;
+        }
+
         if (distToPlayer < spec.size + 1.5) {
-          createExplosion(e.position, 0xff3333, 14);
+          createExplosion(e.position, 0xff3333, 15);
           scene.remove(e);
           enemies.splice(i, 1);
           hp = Math.max(0, hp - 20);
-          updateAllMaterialCounters();
+          updateHUD();
           if (hp <= 0) {
             gameState = 'GAMEOVER';
             document.getElementById('gameover-overlay').classList.remove('hidden');
@@ -1068,30 +1235,25 @@
         }
       }
 
-      // 6. ドロップ資材の回収（近づくと磁石のように吸い寄せられる！）
+      // 8. 資材回収
       for (let i = loots.length - 1; i >= 0; i--) {
         const l = loots[i];
-        l.rotation.y += 0.06;
-        l.rotation.x += 0.04;
+        l.rotation.y += 0.06; l.rotation.x += 0.04;
         const d = l.position.distanceTo(shipGroup.position);
-
-        // 磁力吸着範囲
-        if (d < 16) {
-          l.position.lerp(shipGroup.position, 0.14);
-        }
-        if (d < 3.2) {
+        if (d < 18) l.position.lerp(shipGroup.position, 0.15);
+        if (d < 3.4) {
           const t = l.userData.matType;
           if (t === 'iron') saveData.iron++;
           if (t === 'core') saveData.core++;
           if (t === 'crystal') saveData.crystal++;
           persist();
-          updateAllMaterialCounters();
+          updateHUD();
           scene.remove(l);
           loots.splice(i, 1);
         }
       }
 
-      // 7. パーティクル更新
+      // 9. パーティクル
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.position.add(p.userData.vel);
