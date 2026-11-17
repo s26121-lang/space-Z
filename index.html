@@ -2,95 +2,256 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>スペースZ - 3Dテスト</title>
+  <title>スペースZ - バトル＆ルート</title>
   <style>
-    body { margin: 0; overflow: hidden; background-color: #000; }
-    #info {
-      position: absolute; top: 10px; left: 10px; color: #00ffcc;
-      font-family: sans-serif; font-size: 16px; pointer-events: none;
+    body { margin: 0; overflow: hidden; background-color: #000; font-family: sans-serif; }
+    #hud {
+      position: absolute; top: 15px; left: 15px; color: #00ffcc;
+      font-size: 16px; pointer-events: none; text-shadow: 0 0 5px #000;
+      line-height: 1.6;
+    }
+    #gameover {
+      display: none; position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%); text-align: center; color: #ff3366;
+      background: rgba(0, 0, 0, 0.85); padding: 30px 50px; border: 2px solid #ff3366;
+      border-radius: 10px;
+    }
+    button {
+      margin-top: 15px; padding: 10px 25px; font-size: 16px; cursor: pointer;
+      background: #00ffcc; border: none; border-radius: 5px; font-weight: bold;
     }
   </style>
-  <!-- ブラウザで3Dを動かす仕組み（Three.js）を読み込む -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
-  <div id="info">【スペースZ 開発テスト】<br>W・A・S・Dキー：宇宙船の移動 / スペースキー：レーザー発射</div>
+  <div id="hud">
+    <strong>【スペースZ - 第1弾：バトル＆お宝回収】</strong><br>
+    操作：W・A・S・Dで移動 / スペースキーでレーザー発射<br>
+    <span id="status" style="color: #ffff00; font-size: 18px;">HP: 100 | スコア: 0 | クリスタル: 0</span>
+  </div>
+
+  <div id="gameover">
+    <h1>撃墜されました！</h1>
+    <p id="final-score" style="color: #fff; font-size: 18px;"></p>
+    <button onclick="location.reload()">もう一度出撃する</button>
+  </div>
 
   <script>
-    // 1. 宇宙空間（シーン）とカメラの準備
+    // 1. シーンとカメラ
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 15, 20);
-    camera.lookAt(0, 0, 0);
+    camera.position.set(0, 18, 22);
+    camera.lookAt(0, 0, -5);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    // ライトを追加
-    const light = new THREE.DirectionalLight(0xffffff, 1);
+    // ライト
+    const light = new THREE.DirectionalLight(0xffffff, 1.2);
     light.position.set(10, 20, 10);
     scene.add(light);
-    scene.add(new THREE.AmbientLight(0x404040));
+    scene.add(new THREE.AmbientLight(0x505050));
 
-    // 2. プレイヤーの宇宙船（仮の三角形モデル）
-    const shipGeo = new THREE.ConeGeometry(1, 3, 4);
-    shipGeo.rotateX(Math.PI / 2); // 先端を前に向ける
+    // 2. プレイヤーの宇宙船（先端が奥=-Zを向くように修正）
+    const shipGeo = new THREE.ConeGeometry(1.1, 3.2, 4);
+    shipGeo.rotateX(-Math.PI / 2);
     const shipMat = new THREE.MeshPhongMaterial({ color: 0x00ffff, flatShading: true });
     const ship = new THREE.Mesh(shipGeo, shipMat);
     scene.add(ship);
 
-    // 3. 背景の星をちりばめる
+    // 3. 背景の星
     const starGeo = new THREE.BufferGeometry();
     const starPos = [];
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < 1200; i++) {
       starPos.push((Math.random() - 0.5) * 200, (Math.random() - 0.5) * 50 - 20, (Math.random() - 0.5) * 200);
     }
     starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
     const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.5 }));
     scene.add(stars);
 
-    // 4. キーボード操作とレーザー発射の仕組み
-    const keys = {};
+    // ゲーム状態管理
+    let hp = 100;
+    let score = 0;
+    let crystals = 0;
+    let isGameOver = false;
+
     const lasers = [];
+    const enemies = [];
+    const loots = [];
+    const particles = [];
+
+    function updateHUD() {
+      document.getElementById('status').textContent = `HP: ${hp} | スコア: ${score} | クリスタル: ${crystals}`;
+    }
+
+    // 4. キーボード操作
+    const keys = {};
     window.addEventListener('keydown', (e) => {
       keys[e.code] = true;
-      if (e.code === 'Space') shootLaser();
+      if (e.code === 'Space' && !isGameOver) shootLaser();
     });
     window.addEventListener('keyup', (e) => keys[e.code] = false);
 
     function shootLaser() {
-      const laserGeo = new THREE.BoxGeometry(0.2, 0.2, 1.5);
-      const laserMat = new THREE.MeshBasicMaterial({ color: 0xff0055 });
+      const laserGeo = new THREE.BoxGeometry(0.25, 0.25, 1.8);
+      const laserMat = new THREE.MeshBasicMaterial({ color: 0x00ffaa });
       const laser = new THREE.Mesh(laserGeo, laserMat);
       laser.position.copy(ship.position);
+      laser.position.z -= 1.5;
       scene.add(laser);
       lasers.push(laser);
     }
 
-    // 5. 毎フレームのアニメーション更新
+    // 5. 敵機の生成
+    function spawnEnemy() {
+      if (isGameOver) return;
+      const enemyGeo = new THREE.ConeGeometry(1.3, 3.0, 5);
+      enemyGeo.rotateX(Math.PI / 2); // 手前（+Z）を向く
+      const enemyMat = new THREE.MeshPhongMaterial({ color: 0xff2244, flatShading: true });
+      const enemy = new THREE.Mesh(enemyGeo, enemyMat);
+      enemy.position.set((Math.random() - 0.5) * 32, 0, -70);
+      scene.add(enemy);
+      enemies.push(enemy);
+    }
+    setInterval(spawnEnemy, 1500); // 1.5秒ごとに敵が出現
+
+    // 6. お宝（クリスタル）のドロップ
+    function dropLoot(pos) {
+      const lootGeo = new THREE.OctahedronGeometry(0.9);
+      const lootMat = new THREE.MeshPhongMaterial({ color: 0xffd700, emissive: 0x664400, flatShading: true });
+      const loot = new THREE.Mesh(lootGeo, lootMat);
+      loot.position.copy(pos);
+      scene.add(loot);
+      loots.push(loot);
+    }
+
+    // 爆発エフェクト
+    function createExplosion(pos, color) {
+      for (let i = 0; i < 10; i++) {
+        const pGeo = new THREE.BoxGeometry(0.4, 0.4, 0.4);
+        const pMat = new THREE.MeshBasicMaterial({ color: color });
+        const p = new THREE.Mesh(pGeo, pMat);
+        p.position.copy(pos);
+        p.userData.vel = new THREE.Vector3(
+          (Math.random() - 0.5) * 0.6,
+          (Math.random() - 0.5) * 0.6,
+          (Math.random() - 0.5) * 0.6
+        );
+        p.userData.life = 25;
+        scene.add(p);
+        particles.push(p);
+      }
+    }
+
+    // 7. メインループ
     function animate() {
       requestAnimationFrame(animate);
+      if (isGameOver) return;
 
-      // 宇宙船の移動（WASD）
-      const speed = 0.3;
-      if (keys['KeyW']) ship.position.z -= speed;
-      if (keys['KeyS']) ship.position.z += speed;
-      if (keys['KeyA']) ship.position.x -= speed;
-      if (keys['KeyD']) ship.position.x += speed;
+      // 自機の移動（画面外に出ないよう制限付き）
+      const speed = 0.35;
+      if (keys['KeyW'] && ship.position.z > -25) ship.position.z -= speed;
+      if (keys['KeyS'] && ship.position.z < 12) ship.position.z += speed;
+      if (keys['KeyA'] && ship.position.x > -20) ship.position.x -= speed;
+      if (keys['KeyD'] && ship.position.x < 20) ship.position.x += speed;
 
-      // レーザーの移動
+      // レーザー移動
       for (let i = lasers.length - 1; i >= 0; i--) {
-        lasers[i].position.z -= 1.0;
-        if (lasers[i].position.z < -100) {
+        lasers[i].position.z -= 1.2;
+        if (lasers[i].position.z < -90) {
           scene.remove(lasers[i]);
           lasers.splice(i, 1);
+        }
+      }
+
+      // 敵機の移動と当たり判定
+      for (let i = enemies.length - 1; i >= 0; i--) {
+        const e = enemies[i];
+        e.position.z += 0.25;
+
+        // レーザーとの命中判定
+        let hit = false;
+        for (let j = lasers.length - 1; j >= 0; j--) {
+          if (e.position.distanceTo(lasers[j].position) < 2.0) {
+            createExplosion(e.position, 0xff4400);
+            dropLoot(e.position); // お宝ドロップ！
+            scene.remove(e);
+            enemies.splice(i, 1);
+            scene.remove(lasers[j]);
+            lasers.splice(j, 1);
+            score += 100;
+            updateHUD();
+            hit = true;
+            break;
+          }
+        }
+        if (hit) continue;
+
+        // 自機との衝突判定
+        if (e.position.distanceTo(ship.position) < 2.2) {
+          createExplosion(e.position, 0xff0000);
+          scene.remove(e);
+          enemies.splice(i, 1);
+          hp -= 25;
+          updateHUD();
+          if (hp <= 0) {
+            isGameOver = true;
+            document.getElementById('final-score').textContent = `最終スコア: ${score} / 回収クリスタル: ${crystals}個`;
+            document.getElementById('gameover').style.display = 'block';
+          }
+          continue;
+        }
+
+        // 画面手前を通り過ぎたら消去
+        if (e.position.z > 25) {
+          scene.remove(e);
+          enemies.splice(i, 1);
+        }
+      }
+
+      // お宝（クリスタル）の回転と回収判定
+      for (let i = loots.length - 1; i >= 0; i--) {
+        const l = loots[i];
+        l.rotation.y += 0.05;
+        l.rotation.x += 0.03;
+        l.position.z += 0.1; // ゆっくり手前に流れる
+
+        if (l.position.distanceTo(ship.position) < 2.5) {
+          scene.remove(l);
+          loots.splice(i, 1);
+          crystals += 1;
+          score += 50;
+          updateHUD();
+          continue;
+        }
+        if (l.position.z > 25) {
+          scene.remove(l);
+          loots.splice(i, 1);
+        }
+      }
+
+      // 爆発パーティクル更新
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.position.add(p.userData.vel);
+        p.userData.life--;
+        if (p.userData.life <= 0) {
+          scene.remove(p);
+          particles.splice(i, 1);
         }
       }
 
       renderer.render(scene, camera);
     }
     animate();
+
+    // ウィンドウサイズ変更対応
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
   </script>
 </body>
 </html>
