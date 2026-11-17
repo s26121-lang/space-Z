@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>SPACE Z - 3D DOGFIGHT & GALAXY CRAFT</title>
+  <title>SPACE Z - 3D DOGFIGHT & PLANETARY FPS</title>
   <style>
     * { box-sizing: border-box; user-select: none; }
     body { margin: 0; overflow: hidden; background-color: #000208; font-family: 'Segoe UI', 'Hiragino Kaku Gothic ProN', sans-serif; color: #fff; }
@@ -10,8 +10,8 @@
     .overlay {
       position: absolute; inset: 0; display: flex; flex-direction: column;
       justify-content: center; align-items: center;
-      background: radial-gradient(circle at center, rgba(10, 15, 35, 0.55) 0%, rgba(0, 2, 10, 0.9) 100%);
-      z-index: 20;
+      background: radial-gradient(circle at center, rgba(10, 15, 35, 0.55) 0%, rgba(0, 2, 10, 0.92) 100%);
+      z-index: 30;
     }
     .hidden { display: none !important; }
 
@@ -22,7 +22,7 @@
       text-shadow: 0 0 35px rgba(56, 189, 248, 0.5);
       margin-bottom: 4px;
     }
-    .subtitle { color: #7dd3fc; font-size: 13px; letter-spacing: 5px; margin-bottom: 22px; }
+    .subtitle { color: #7dd3fc; font-size: 13px; letter-spacing: 4px; margin-bottom: 22px; }
 
     .mat-bar {
       display: flex; gap: 16px; background: rgba(15, 23, 42, 0.88);
@@ -30,7 +30,7 @@
       margin-bottom: 22px; font-size: 14px; font-weight: bold;
     }
 
-    .menu-buttons { display: flex; flex-direction: column; gap: 12px; width: 350px; }
+    .menu-buttons { display: flex; flex-direction: column; gap: 12px; width: 360px; }
     .menu-btn {
       padding: 15px 22px; font-size: 17px; font-weight: bold; color: #fff;
       background: rgba(10, 25, 50, 0.85); border: 1px solid #38bdf8;
@@ -99,7 +99,7 @@
       color: #fff; border: 1px solid #475569; border-radius: 6px; cursor: pointer; font-weight: bold;
     }
 
-    /* マウス照準レティクル */
+    /* 宇宙戦用マウス照準レティクル */
     #crosshair {
       position: fixed; width: 46px; height: 46px;
       border: 2px solid rgba(56, 189, 248, 0.85); border-radius: 50%;
@@ -117,12 +117,57 @@
       transform: translate(-50%, -50%); pointer-events: none; z-index: 14;
     }
 
-    /* HUD */
+    /* 地上FPS戦用UI（SHADOW FRONT参考） */
+    #fps-cross {
+      position: fixed; left: 50%; top: 50%; width: 28px; height: 28px; margin: -14px 0 0 -14px;
+      pointer-events: none; z-index: 16; filter: drop-shadow(0 0 2px #000);
+      background:
+        linear-gradient(#fff,#fff) 50% 0/2px 8px no-repeat,
+        linear-gradient(#fff,#fff) 50% 100%/2px 8px no-repeat,
+        linear-gradient(#fff,#fff) 0 50%/8px 2px no-repeat,
+        linear-gradient(#fff,#fff) 100% 50%/8px 2px no-repeat,
+        radial-gradient(circle,#fff 0 1.5px,transparent 2px);
+    }
+    #fps-hm {
+      position: fixed; left: 50%; top: 50%; width: 30px; height: 30px; margin: -15px 0 0 -15px;
+      border: 3px solid #f97316; transform: rotate(45deg); opacity: 0; pointer-events: none; z-index: 17;
+    }
+    #fps-scope {
+      position: fixed; inset: 0; pointer-events: none; z-index: 15;
+      background: radial-gradient(circle at 50% 50%, transparent 0, transparent 34%, #000 34.5%);
+    }
+    #fps-scope::before { content: ""; position: absolute; left: 50%; top: 50%; width: 42%; height: 1px; background: #000; transform: translate(-50%,-50%); }
+    #fps-scope::after { content: ""; position: absolute; left: 50%; top: 50%; height: 66%; width: 1px; background: #000; transform: translate(-50%,-50%); }
+    #fps-vig {
+      position: fixed; inset: 0; box-shadow: inset 0 0 120px 40px #dc2626; opacity: 0; pointer-events: none; z-index: 14;
+    }
+    #fps-weapon-hud {
+      position: fixed; right: 20px; bottom: 20px; padding: 10px 20px;
+      background: linear-gradient(270deg, rgba(5, 15, 30, 0.9), rgba(5, 15, 30, 0));
+      border-right: 4px solid #f97316; text-align: right; pointer-events: none; z-index: 16;
+    }
+    #fps-wname { font-size: 16px; font-weight: bold; color: #38bdf8; }
+    #fps-ammo { font-size: 26px; font-weight: 900; color: #fff; letter-spacing: 1px; }
+    #fps-lock-tip {
+      position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.88); border: 1px solid #facc15; color: #fde047;
+      padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: bold; z-index: 18; pointer-events: none;
+    }
+
+    /* 惑星降下・宇宙帰還プロンプト */
+    #land-prompt {
+      position: fixed; bottom: 95px; left: 50%; transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.92); border: 2px solid #4ade80; color: #4ade80;
+      padding: 12px 26px; border-radius: 30px; font-size: 16px; font-weight: bold;
+      box-shadow: 0 0 25px rgba(74, 222, 128, 0.5); z-index: 18; cursor: pointer;
+    }
+
+    /* 共通HUD */
     #hud {
       position: absolute; top: 15px; left: 15px; color: #70f0ff; font-size: 13px;
-      pointer-events: none; background: rgba(5, 15, 30, 0.82); padding: 12px 16px;
+      pointer-events: none; background: rgba(5, 15, 30, 0.84); padding: 12px 16px;
       border-left: 4px solid #38bdf8; border-radius: 0 8px 8px 0; line-height: 1.65;
-      z-index: 15;
+      z-index: 16;
     }
     #hp-text { color: #4ade80; font-size: 16px; font-weight: bold; }
     #missile-hud { color: #f472b6; font-weight: bold; }
@@ -131,12 +176,12 @@
 
     #radar-box {
       position: absolute; top: 15px; right: 15px; text-align: center;
-      background: rgba(5, 15, 30, 0.82); border: 1px solid #38bdf8;
-      border-radius: 10px; padding: 8px; z-index: 15;
+      background: rgba(5, 15, 30, 0.84); border: 1px solid #38bdf8;
+      border-radius: 10px; padding: 8px; z-index: 16;
     }
     #radar { display: block; border-radius: 50%; background: radial-gradient(circle, #0a192f 0%, #020617 100%); }
     .top-btns {
-      position: absolute; top: 175px; right: 15px; display: flex; flex-direction: column; gap: 6px; z-index: 15;
+      position: absolute; top: 175px; right: 15px; display: flex; flex-direction: column; gap: 6px; z-index: 16;
     }
     .mini-btn {
       padding: 7px 12px; background: rgba(15, 23, 42, 0.9); color: #fff;
@@ -147,29 +192,46 @@
     #nora-log {
       position: absolute; bottom: 15px; left: 15px; width: 360px;
       background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.45);
-      border-radius: 8px; padding: 9px 12px; font-size: 12px; color: #bae6fd; pointer-events: none; z-index: 15;
+      border-radius: 8px; padding: 9px 12px; font-size: 12px; color: #bae6fd; pointer-events: none; z-index: 16;
     }
     #toast {
       position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
       background: linear-gradient(90deg, #0284c7, #38bdf8); color: #000; font-weight: bold;
       padding: 9px 22px; border-radius: 20px; font-size: 14px; opacity: 0;
-      transition: opacity 0.25s; pointer-events: none; z-index: 18;
+      transition: opacity 0.25s; pointer-events: none; z-index: 25;
       box-shadow: 0 0 20px rgba(56, 189, 248, 0.6);
     }
+    #hit-ind-layer { position: fixed; inset: 0; pointer-events: none; z-index: 16; }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
 <body oncontextmenu="return false;">
 
-  <!-- 照準UI -->
+  <!-- 宇宙戦照準UI -->
   <div id="center-dot" class="hidden"></div>
   <div id="crosshair" class="hidden"></div>
+
+  <!-- 地上FPS戦用UI -->
+  <div id="fps-vig"></div>
+  <div id="fps-cross" class="hidden"></div>
+  <div id="fps-hm"></div>
+  <div id="fps-scope" class="hidden"></div>
+  <div id="hit-ind-layer"></div>
+  <div id="fps-lock-tip" class="hidden">🎯 画面をクリックするとFPSマウス照準が固定されます（ESCで解除）</div>
+  <div id="fps-weapon-hud" class="hidden">
+    <div id="fps-wname">1: プラズマAR</div>
+    <div id="fps-ammo">30 / 30</div>
+    <div style="font-size:11px; color:#94a3b8;">[1/2/3] 武器切替 | [R] リロード | [右クリック/V] 精密照準</div>
+  </div>
+
+  <!-- 惑星降下 / 宇宙帰還ボタン -->
+  <div id="land-prompt" class="hidden" onclick="togglePlanetLanding()"></div>
 
   <!-- メインメニュー -->
   <div id="main-menu" class="overlay">
     <div class="title-logo">SPACE Z</div>
-    <div class="subtitle">360° 3D DOGFIGHT & GALAXY CRAFT</div>
+    <div class="subtitle">3D DOGFIGHT & PLANETARY FPS COMBAT</div>
     <div class="mat-bar">
       <span>🔩 鉄: <b id="m-iron">0</b></span>
       <span>⚡ コア: <b id="m-core">0</b></span>
@@ -177,7 +239,7 @@
     </div>
     <div class="menu-buttons">
       <button class="menu-btn" onclick="startGame('solo')">
-        <span>🚀 3D宇宙サバイバルへ出る</span><span class="tag">360° FLIGHT</span>
+        <span>🚀 宇宙＆惑星サバイバルへ出る</span><span class="tag">SPACE & FPS</span>
       </button>
       <button class="menu-btn" onclick="openNoraLobby()">
         <span>🌐 オンラインPvP対戦</span><span class="tag">P2P LIVE</span>
@@ -195,13 +257,13 @@
   <div id="shop-menu" class="overlay hidden">
     <div class="panel">
       <div class="panel-header">
-        <h2>🔧 資材クラフト＆機体合体</h2>
+        <h2>🔧 資材クラフト＆機体・武器強化</h2>
         <div style="font-size:13px; color:#fde047; font-weight:bold;">
           🔩<span id="s-iron">0</span> / ⚡<span id="s-core">0</span> / 💎<span id="s-crystal">0</span>
         </div>
       </div>
       <p style="font-size:12px; color:#fca5a5; margin-top:0;">
-        ⚠️ 撃墜されると所持資材はすべて失われます！宇宙ステーションの緑リング付近でHP回復できます。
+        ⚠️ 撃墜されると所持資材はすべて失われます！惑星に降りて地上戦に勝つとレア資材を大量獲得できます！
       </p>
 
       <div id="craft-list"></div>
@@ -231,7 +293,7 @@
         <select id="cfg-diff" onchange="saveSettings()">
           <option value="easy">EASY（超快適・被ダメ半減＆敵弱体）</option>
           <option value="normal" selected>NORMAL（遊びやすい標準バランス）</option>
-          <option value="hard">HARD（高火力・上級者向け）</option>
+          <option value="hard">HARD（地獄の宙域＆精鋭地上部隊・超強化）</option>
         </select>
       </div>
       <div class="setting-row">
@@ -239,11 +301,11 @@
         <select id="cfg-sens" onchange="saveSettings()">
           <option value="0.022">低め（精密射撃向け）</option>
           <option value="0.036" selected>標準</option>
-          <option value="0.052">高め（素早い宙返り）</option>
+          <option value="0.052">高め（素早い旋回）</option>
         </select>
       </div>
       <div class="setting-row">
-        <span>上下操作（ピッチ）反転</span>
+        <span>宇宙戦の上下操作（ピッチ）反転</span>
         <select id="cfg-invert" onchange="saveSettings()">
           <option value="1" selected>標準（上へ動かすと上昇）</option>
           <option value="-1">フライト式（下へ引くと上昇）</option>
@@ -302,20 +364,23 @@
   <!-- プレイ中HUD -->
   <div id="hud" class="hidden">
     <strong id="mode-label">【3D銀河サバイバル】</strong><br>
-    <b>マウス移動</b> 上下左右360°旋回 | <b>W/S</b> 加速・減速 | <b>A/D</b> 横移動<br>
-    <b>左クリック / Space</b> 照準ビーム | <b>右クリック / E</b> 追尾ミサイル | <b>Shift</b> ブースト<br>
+    <div id="controls-help">
+      <b>マウス移動</b> 360°旋回 | <b>W/S</b> 加速・減速 | <b>A/D</b> 横移動<br>
+      <b>左クリック / Space</b> ビーム | <b>右クリック / E</b> ミサイル | <b>F</b> 惑星降下
+    </div>
     <div id="hp-text">耐久力: 100 / 100</div>
-    <div id="missile-hud">🚀 追尾ミサイル: READY (100%)</div>
+    <div id="missile-hud">🚀 追尾ミサイル: READY! [右クリック / E]</div>
     <div id="loot-hud">🔩 鉄: 0 | ⚡ コア: 0 | 💎 結晶: 0</div>
     <div id="combo-hud">撃破: 0 | 高度(Y): 0 | 座標: X 0, Z 0</div>
   </div>
 
   <div id="radar-box" class="hidden">
     <canvas id="radar" width="130" height="130"></canvas>
-    <div style="font-size:10px; color:#7dd3fc; margin-top:3px;">赤:敵 / 紫:対人 / 緑:回復基地 / 青:ゲート</div>
+    <div id="radar-legend" style="font-size:10px; color:#7dd3fc; margin-top:3px;">赤:敵 / 紫:対人 / 緑:回復基地 / 水色:惑星</div>
   </div>
 
   <div id="play-btns" class="top-btns hidden">
+    <button class="mini-btn" id="btn-land-toggle" onclick="togglePlanetLanding()" style="display:none; border-color:#4ade80; color:#4ade80;">🪐 惑星へ降下 [F]</button>
     <button class="mini-btn" onclick="openCraftShop(true)">🔧 その場でクラフト</button>
     <button class="mini-btn" onclick="showMainMenu()">🏠 物資を持ち帰る</button>
   </div>
@@ -326,9 +391,9 @@
   <!-- ゲームオーバー -->
   <div id="gameover-overlay" class="overlay hidden">
     <div class="panel" style="text-align:center; max-width:440px; border-top-color:#ef4444;">
-      <h1 style="color:#ef4444; margin-top:0; font-size:36px;">💥 船体大破！</h1>
+      <h1 style="color:#ef4444; margin-top:0; font-size:36px;">💥 戦死・大破！</h1>
       <p style="color:#fca5a5; font-size:16px; font-weight:bold;">
-        ⚠️ 所持していたすべての物資（鉄・コア・結晶）が宇宙の藻屑となりました…！
+        ⚠️ 所持していたすべての物資（鉄・コア・結晶）が失われました…！
       </p>
       <p style="color:#94a3b8; font-size:13px;">※クラフト済みの機体パーツは残っています。</p>
       <button class="craft-btn" style="padding:12px 28px; font-size:16px;" onclick="showMainMenu()">ハンガーへ戻る</button>
@@ -339,7 +404,7 @@
     // ==========================================
     // セーブデータ＆設定
     // ==========================================
-    let saveData = JSON.parse(localStorage.getItem('spaceZ_3d_v1')) || {
+    let saveData = JSON.parse(localStorage.getItem('spaceZ_3d_v2')) || {
       iron: 0,
       core: 0,
       crystal: 0,
@@ -350,32 +415,32 @@
     document.getElementById('cfg-name').value = saveData.pilotName;
 
     function persist() {
-      localStorage.setItem('spaceZ_3d_v1', JSON.stringify(saveData));
+      localStorage.setItem('spaceZ_3d_v2', JSON.stringify(saveData));
     }
 
     const RECIPES = [
       {
         id: 'twin_wing',
-        name: '重装甲サイドポッド＆可変ウイング',
-        desc: '最大HP +70 ＆ 機体に大型装甲ポッドが合体！',
+        name: '重装甲サイドポッド＆強化コンバットスーツ',
+        desc: '宇宙船＆地上兵の最大HP +70！戦場での生存率が大幅アップ',
         req: { iron: 3, core: 0, crystal: 0 }
       },
       {
         id: 'plasma_cannon',
-        name: '3連装プラズマ・ガトリング砲',
-        desc: 'ビームが3連装になり連射力＆火力が大幅アップ！',
+        name: '3連装プラズマ砲＆高精度バレル',
+        desc: '宇宙ビームが3連装化 ＆ 地上銃撃戦の射撃ダメージ +25%！',
         req: { iron: 2, core: 2, crystal: 0 }
       },
       {
         id: 'hyper_thruster',
-        name: 'ツイン・ハイパースラスター機関',
-        desc: '巡航速度とShiftブースト速度が超強化！',
+        name: 'ツイン・ハイパースラスター＆強化脚部',
+        desc: '宇宙飛行速度超強化 ＆ 地上戦のダッシュ・ジャンプ力アップ！',
         req: { iron: 1, core: 3, crystal: 0 }
       },
       {
         id: 'crystal_nova',
-        name: '結晶レゾナンス砲（5連拡散＆ミサイル強化）',
-        desc: '背面に回転クリスタル炉を合体！5連装ビーム＆ミサイル6発斉射！',
+        name: '結晶レゾナンス炉（5連拡散＆地上武器超強化）',
+        desc: '5連ビーム＆ミサイル6発 ＆ 地上銃撃戦のダメージ +50%！',
         req: { iron: 4, core: 3, crystal: 2 }
       },
       {
@@ -398,36 +463,67 @@
       stars.visible = (config.gfx === 'high');
     }
 
-    // 難易度ごとの優しいバランス補正を取得
+    // 難易度バランス（HARDは超強化、EASY/NORMALは遊びやすく）
     function getDiffBalance() {
       if (config.diff === 'easy') {
         return {
-          dmgMult: 0.5,      // 被ダメージ半減！
-          hpMult: 0.6,       // 敵が柔らかい
-          speedMult: 0.72,   // 敵が遅い
-          cdMult: 1.45,      // 敵の攻撃間隔が長い
-          maxEnemies: 5,     // 敵の数が少ない
+          dmgMult: 0.5,
+          hpMult: 0.6,
+          speedMult: 0.72,
+          cdMult: 1.45,
+          maxEnemies: 5,
+          fpsHpMult: 0.65,
+          fpsFireMs: 1450,
+          fpsAcc: 0.22,
+          fpsSpd: 0.75,
           label: 'EASY'
         };
       } else if (config.diff === 'hard') {
         return {
-          dmgMult: 1.35,
-          hpMult: 1.4,
-          speedMult: 1.15,
-          cdMult: 0.85,
-          maxEnemies: 12,
+          dmgMult: 1.85,     // ★HARD大幅強化：被ダメージ1.85倍
+          hpMult: 2.2,       // ★HARD大幅強化：敵機HP2.2倍
+          speedMult: 1.35,   // ★HARD大幅強化：敵が高速化
+          cdMult: 0.55,      // ★HARD大幅強化：敵の連射速度が約2倍！
+          maxEnemies: 15,    // ★HARD大幅強化：同時出現15機！
+          fpsHpMult: 1.8,    // ★地上戦HARD：敵兵HP1.8倍
+          fpsFireMs: 520,    // ★地上戦HARD：敵兵の高速連射
+          fpsAcc: 0.68,      // ★地上戦HARD：敵兵の高命中精度
+          fpsSpd: 1.35,      // ★地上戦HARD：敵兵の高速移動
           label: 'HARD'
         };
       }
-      // NORMALも遊びやすく調整
       return {
-        dmgMult: 0.75,       // 被ダメージ25%軽減
-        hpMult: 0.8,         // 敵HP20%ダウン
-        speedMult: 0.85,     // 敵スピード15%ダウン
-        cdMult: 1.2,         // 敵の連射間隔を少し緩やかに
-        maxEnemies: 7,       // 同時出現7体まで
+        dmgMult: 0.75,
+        hpMult: 0.8,
+        speedMult: 0.85,
+        cdMult: 1.2,
+        maxEnemies: 7,
+        fpsHpMult: 0.95,
+        fpsFireMs: 950,
+        fpsAcc: 0.36,
+        fpsSpd: 0.95,
         label: 'NORMAL'
       };
+    }
+
+    // ==========================================
+    // 効果音シンセ（Web Audio API）
+    // ==========================================
+    let audioCtx = null;
+    function playBeep(freq, dur, vol = 0.06, type = 'square') {
+      try {
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = type;
+        o.frequency.value = freq;
+        g.gain.setValueAtTime(vol, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+        o.connect(g);
+        g.connect(audioCtx.destination);
+        o.start();
+        o.stop(audioCtx.currentTime + dur);
+      } catch (e) {}
     }
 
     // ==========================================
@@ -480,7 +576,7 @@
       conn.on('close', () => {
         delete connections[conn.peer];
         if (remotePlayers[conn.peer]) {
-          scene.remove(remotePlayers[conn.peer].mesh);
+          spaceScene.remove(remotePlayers[conn.peer].mesh);
           addNoraLog(`🚪 <b>${remotePlayers[conn.peer].name}</b> が離脱しました`);
           delete remotePlayers[conn.peer];
         }
@@ -505,7 +601,7 @@
           marker.name = 'spinPart';
           rMesh.add(marker);
           rMesh.position.set(data.x, data.y || 0, data.z);
-          scene.add(rMesh);
+          spaceScene.add(rMesh);
           remotePlayers[peerId] = {
             mesh: rMesh,
             targetPos: new THREE.Vector3(data.x, data.y || 0, data.z),
@@ -522,7 +618,7 @@
           rp.name = data.name || rp.name;
           const newKey = JSON.stringify(data.crafted || []);
           if (rp.color !== data.color || rp.craftedKey !== newKey) {
-            scene.remove(rp.mesh);
+            spaceScene.remove(rp.mesh);
             const newMesh = buildPlayerShip(data.color, data.crafted || []);
             const marker = new THREE.Mesh(
               new THREE.OctahedronGeometry(1.2),
@@ -532,7 +628,7 @@
             marker.name = 'spinPart';
             newMesh.add(marker);
             newMesh.position.copy(rp.targetPos);
-            scene.add(newMesh);
+            spaceScene.add(newMesh);
             rp.mesh = newMesh;
             rp.color = data.color;
             rp.craftedKey = newKey;
@@ -572,27 +668,30 @@
     }
 
     // ==========================================
-    // 3Dシーン＆立体宇宙フィールド構築
+    // レンダラー＆宇宙シーン（spaceScene）構築
     // ==========================================
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.1, 2000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
     document.body.appendChild(renderer.domElement);
 
-    scene.add(new THREE.HemisphereLight(0xe0f2fe, 0x334155, 1.4));
+    const spaceScene = new THREE.Scene();
+    const spaceCamera = new THREE.PerspectiveCamera(68, window.innerWidth / window.innerHeight, 0.1, 2000);
+
+    spaceScene.add(new THREE.HemisphereLight(0xe0f2fe, 0x334155, 1.4));
     const sunLight = new THREE.DirectionalLight(0xffffff, 1.5);
     sunLight.position.set(150, 220, 120);
-    scene.add(sunLight);
+    spaceScene.add(sunLight);
 
+    // 5つの着陸可能な惑星定義
     const planets = [];
     const planetConfigs = [
-      { x: 0, y: -220, z: -260, r: 150, color: 0x1d4ed8, ring: false },
-      { x: 380, y: 80, z: -420, r: 70, color: 0xd97706, ring: true },
-      { x: -360, y: -60, z: -340, r: 60, color: 0x059669, ring: false },
-      { x: 260, y: -90, z: 340, r: 65, color: 0x7c3aed, ring: true },
-      { x: -300, y: 110, z: 300, r: 75, color: 0xdc2626, ring: false }
+      { name: '海洋惑星アクエリアス', x: 0, y: -150, z: -220, r: 95, color: 0x1d4ed8, sky: 0x38bdf8, ground: 0x1e3a8a, ring: false },
+      { name: '砂漠惑星デューン', x: 260, y: 50, z: -280, r: 65, color: 0xd97706, sky: 0xfbbf24, ground: 0xb45309, ring: true },
+      { name: '密林惑星ガイア', x: -250, y: -40, z: -240, r: 60, color: 0x059669, sky: 0x34d399, ground: 0x065f46, ring: false },
+      { name: '結晶惑星クリスタリア', x: 210, y: -60, z: 240, r: 62, color: 0x7c3aed, sky: 0xc084fc, ground: 0x4c1d95, ring: true },
+      { name: '灼熱惑星イグニス', x: -230, y: 70, z: 220, r: 68, color: 0xdc2626, sky: 0xf87171, ground: 0x7f1d1d, ring: false }
     ];
     planetConfigs.forEach(p => {
       const grp = new THREE.Group();
@@ -601,6 +700,14 @@
         new THREE.MeshPhongMaterial({ color: p.color, shininess: 25 })
       );
       grp.add(mesh);
+      // 着陸可能エリアを示す光るオーラリング
+      const aura = new THREE.Mesh(
+        new THREE.TorusGeometry(p.r * 1.12, 1.2, 8, 48),
+        new THREE.MeshBasicMaterial({ color: 0x4ade80, transparent: true, opacity: 0.45 })
+      );
+      aura.rotation.x = Math.PI / 2;
+      grp.add(aura);
+
       if (p.ring) {
         const ring = new THREE.Mesh(
           new THREE.RingGeometry(p.r * 1.3, p.r * 1.85, 32),
@@ -610,11 +717,11 @@
         grp.add(ring);
       }
       grp.position.set(p.x, p.y, p.z);
-      scene.add(grp);
-      planets.push({ mesh: grp, x: p.x, y: p.y, z: p.z, r: p.r });
+      spaceScene.add(grp);
+      planets.push({ ...p, mesh: grp });
     });
 
-    // 回復宇宙ステーション（近づくとHP自動回復！）
+    // 回復宇宙ステーション
     const stationGroup = new THREE.Group();
     const stCore = new THREE.Mesh(
       new THREE.IcosahedronGeometry(20, 1),
@@ -626,13 +733,13 @@
     );
     stHealZone.rotation.x = Math.PI / 2;
     stationGroup.add(stCore, stHealZone);
-    stationGroup.position.set(0, 15, -140);
-    scene.add(stationGroup);
+    stationGroup.position.set(0, 15, -115);
+    spaceScene.add(stationGroup);
 
-    // 遮蔽物になる巨大アステロイド（小惑星帯）
+    // 小惑星帯
     const asteroids = [];
     const astMat = new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.85, metalness: 0.2, flatShading: true });
-    for (let i = 0; i < 45; i++) {
+    for (let i = 0; i < 42; i++) {
       const radius = 6 + Math.random() * 14;
       const ast = new THREE.Mesh(new THREE.DodecahedronGeometry(radius, 1), astMat);
       ast.position.set(
@@ -646,14 +753,14 @@
         radius,
         rotVel: new THREE.Vector3((Math.random() - 0.5) * 0.006, (Math.random() - 0.5) * 0.006, 0)
       };
-      scene.add(ast);
+      spaceScene.add(ast);
       asteroids.push(ast);
     }
 
-    // くぐると超加速するワープゲートリング
+    // ワープゲート
     const warpGates = [];
     const gatePositions = [
-      { x: 0, y: 10, z: -70, ry: 0 },
+      { x: 0, y: 10, z: -65, ry: 0 },
       { x: 140, y: 40, z: -180, ry: -0.6 },
       { x: -150, y: -30, z: -160, ry: 0.6 },
       { x: 120, y: -20, z: 150, ry: 2.4 },
@@ -672,7 +779,7 @@
       gateGrp.add(outerRing, innerGlow);
       gateGrp.position.set(gp.x, gp.y, gp.z);
       gateGrp.rotation.y = gp.ry;
-      scene.add(gateGrp);
+      spaceScene.add(gateGrp);
       warpGates.push(gateGrp);
     });
 
@@ -683,10 +790,10 @@
     }
     starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
     const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 1.2 }));
-    scene.add(stars);
+    spaceScene.add(stars);
 
     // ==========================================
-    // 自機3Dモデル
+    // 宇宙船3Dモデル構築
     // ==========================================
     function buildPlayerShip(colorHex, craftedList) {
       const group = new THREE.Group();
@@ -791,20 +898,20 @@
     }
 
     let shipGroup = buildPlayerShip(saveData.shipColor, saveData.crafted);
-    scene.add(shipGroup);
+    spaceScene.add(shipGroup);
 
     function rebuildPlayerShip() {
       const pos = shipGroup.position.clone();
       const quat = shipGroup.quaternion.clone();
-      scene.remove(shipGroup);
+      spaceScene.remove(shipGroup);
       shipGroup = buildPlayerShip(saveData.shipColor, saveData.crafted);
       shipGroup.position.copy(pos);
       shipGroup.quaternion.copy(quat);
-      scene.add(shipGroup);
+      spaceScene.add(shipGroup);
     }
 
     // ==========================================
-    // 敵の定義（基本スペックを全体的にマイルドに調整）
+    // 宇宙戦の敵定義
     // ==========================================
     const ENEMY_TYPES = [
       {
@@ -902,45 +1009,649 @@
       return grp;
     }
 
+    // ==========================================================================
+    // ★惑星地上戦（SHADOW FRONT参考 3D FPSアリーナ＆人型敵兵）構築
     // ==========================================
-    // ゲーム状態＆マウス3D照準システム
+    const groundScene = new THREE.Scene();
+    groundScene.fog = new THREE.Fog(0x1e3a8a, 25, 110);
+    const groundCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 300);
+    groundCamera.rotation.order = 'YXZ';
+    groundScene.add(groundCamera);
+
+    const gHemi = new THREE.HemisphereLight(0xe0f2fe, 0x334155, 0.9);
+    groundScene.add(gHemi);
+    const gSun = new THREE.DirectionalLight(0xfff1d0, 1.2);
+    gSun.position.set(-20, 35, 15);
+    gSun.castShadow = true;
+    groundScene.add(gSun);
+
+    // 地面・外周・遮蔽物・高台・スロープ
+    const gFloorMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.9 });
+    const gFloor = new THREE.Mesh(new THREE.PlaneGeometry(44, 44), gFloorMat);
+    gFloor.rotation.x = -Math.PI / 2;
+    gFloor.receiveShadow = true;
+    groundScene.add(gFloor);
+
+    const gOuter = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 1 }));
+    gOuter.rotation.x = -Math.PI / 2;
+    gOuter.position.y = -0.05;
+    groundScene.add(gOuter);
+
+    const G_BX = [], G_PL = [], G_RP = [];
+    function gBox(x, z, w, d, h, c) {
+      G_BX.push({ x, z, w, d, h });
+      const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color: c, roughness: 0.7, metalness: 0.25 }));
+      m.position.set(x, h / 2, z);
+      m.castShadow = m.receiveShadow = true;
+      groundScene.add(m);
+    }
+    // 外周壁＆戦術遮蔽物（SHADOW FRONTレイアウト準拠）
+    gBox(0, -21.5, 44, 1, 7, 0x2fb5a8);
+    gBox(0, 21.5, 44, 1, 7, 0xf08a3c);
+    gBox(-21.5, 0, 1, 42, 7, 0x8a5cf0);
+    gBox(21.5, 0, 1, 42, 7, 0xe8577a);
+
+    [
+      [-6, -4, 4, 2, 4.5, 0xf08a3c], [6, 5, 3, 3, 5, 0x2fb5a8], [0, 0, 2.2, 2.2, 6, 0xf2c94c],
+      [-10, 8, 5, 1.5, 4.5, 0x8a5cf0], [11, -9, 1.5, 5, 5, 0xe8577a], [-8, -14, 2, 2, 4, 0xe8577a],
+      [9, 14, 3, 1.5, 4.5, 0xf08a3c], [-6, 14, 1.5, 3, 4.5, 0x2fb5a8], [8, -4, 1.5, 2, 4, 0xf2c94c],
+      [-17, 11, 2, 2, 5, 0x8a5cf0], [17, 15, 2, 3, 4.5, 0xe8577a], [-2, -8, 3, 1.5, 4.5, 0x8a5cf0],
+      [1, 6, 1.5, 3, 4, 0x2fb5a8], [-12, 3, 2, 2, 4.5, 0xf08a3c], [15, 4, 2, 2, 4.5, 0x2fb5a8],
+      [-13, -12, 3, 3, 4.5, 0x2fb5a8], [3, -14, 6, 1.5, 4.5, 0xf08a3c], [-3, 12, 2, 2, 5, 0xe8577a]
+    ].forEach(a => gBox(...a));
+
+    function gPlat(x, z, w, d, h, c) {
+      G_PL.push({ x, z, w, d, h });
+      const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color: c, roughness: 0.8 }));
+      m.position.set(x, h / 2, z);
+      m.castShadow = m.receiveShadow = true;
+      groundScene.add(m);
+    }
+    function gRamp(x, z, len, wid, h, dir, c) {
+      G_RP.push({ x, z, len, wid, h, dir });
+      const sh = new THREE.Shape();
+      sh.moveTo(0, 0); sh.lineTo(len, 0); sh.lineTo(len, h); sh.lineTo(0, 0);
+      const geo = new THREE.ExtrudeGeometry(sh, { depth: wid, bevelEnabled: false });
+      geo.translate(-len / 2, 0, -wid / 2);
+      const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: c, roughness: 0.8 }));
+      m.position.set(x, 0, z);
+      m.rotation.y = { e: 0, w: Math.PI, n: Math.PI / 2, s: -Math.PI / 2 }[dir];
+      m.castShadow = m.receiveShadow = true;
+      groundScene.add(m);
+    }
+    function getGroundHeight(x, z) {
+      let h = 0;
+      for (const b of G_PL) {
+        if (Math.abs(x - b.x) < b.w / 2 && Math.abs(z - b.z) < b.d / 2) h = Math.max(h, b.h);
+      }
+      for (const r of G_RP) {
+        const ew = r.dir === 'e' || r.dir === 'w';
+        const hx = (ew ? r.len : r.wid) / 2, hz = (ew ? r.wid : r.len) / 2;
+        if (Math.abs(x - r.x) < hx && Math.abs(z - r.z) < hz) {
+          const t = r.dir === 'e' ? (x - r.x + hx) / r.len
+                  : r.dir === 'w' ? (r.x + hx - x) / r.len
+                  : r.dir === 'n' ? (r.z + hz - z) / r.len
+                  : (z - r.z + hz) / r.len;
+          h = Math.max(h, r.h * t);
+        }
+      }
+      return h;
+    }
+
+    // 高台＆スロープ配置
+    gPlat(-10, -8, 6, 5, 2.4, 0xf6e7b4);
+    gRamp(-5.25, -8, 3.5, 3, 2.4, 'w', 0xf0b45a);
+    gPlat(11, 8, 6, 5, 2.4, 0xf6e7b4);
+    gRamp(11, 3.75, 3.5, 3, 2.4, 's', 0xf0b45a);
+    gPlat(-12, 13, 5, 4, 1.0, 0x9fd8c8);
+    [[4, -9, 2, 2, 1, 0xf08a3c], [-4, 5, 2, 2, 1, 0x8a5cf0], [6, -1, 2, 1.5, 1, 0x2fb5a8]].forEach(a => gPlat(...a));
+
+    // 着陸地点の自機（宇宙へ帰還するためのランディングシップ）
+    const landedShipBeacon = new THREE.Group();
+    const parkedShip = buildPlayerShip(saveData.shipColor, saveData.crafted);
+    parkedShip.scale.setScalar(0.85);
+    parkedShip.position.y = 1.2;
+    const returnRing = new THREE.Mesh(
+      new THREE.RingGeometry(2.2, 2.8, 32),
+      new THREE.MeshBasicMaterial({ color: 0x38bdf8, side: THREE.DoubleSide })
+    );
+    returnRing.rotation.x = -Math.PI / 2;
+    returnRing.position.y = 0.05;
+    landedShipBeacon.add(parkedShip, returnRing);
+    landedShipBeacon.position.set(0, 0, 17.5);
+    groundScene.add(landedShipBeacon);
+
+    // 一人称視点（FPS）の銃モデル＆マズルフラッシュ
+    const fpsGun = new THREE.Group();
+    const fpsGunBody = new THREE.Group();
+    fpsGun.add(fpsGunBody);
+
+    const flashTex = (() => {
+      const c = document.createElement('canvas'); c.width = c.height = 64;
+      const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+      g.addColorStop(0, 'rgba(255,250,220,1)');
+      g.addColorStop(0.3, 'rgba(255,190,80,0.7)');
+      g.addColorStop(1, 'rgba(255,120,0,0)');
+      x.fillStyle = g; x.fillRect(0, 0, 64, 64);
+      return new THREE.CanvasTexture(c);
+    })();
+    const flashMat = new THREE.MeshBasicMaterial({ map: flashTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
+    const fPlane1 = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.34), flashMat);
+    const fPlane2 = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.2), flashMat);
+    fPlane2.rotation.y = Math.PI / 2;
+    fPlane1.visible = fPlane2.visible = false;
+    const muzzleGroup = new THREE.Group();
+    muzzleGroup.add(fPlane1, fPlane2);
+    muzzleGroup.position.z = -0.85;
+    fpsGun.add(muzzleGroup);
+    fpsGun.position.set(0.24, -0.22, -0.5);
+    groundCamera.add(fpsGun);
+
+    const FPS_WEAPONS = [
+      { name: 'プラズマAR', dmg: 16, rate: 110, spread: 0.012, pellets: 1, mag: 30, reloadTime: 1.6 },
+      { name: 'レールSR（スナイパー）', dmg: 95, rate: 850, spread: 0.0, pellets: 1, mag: 5, reloadTime: 2.2 },
+      { name: 'ヘビーSG（ショットガン）', dmg: 13, rate: 650, spread: 0.068, pellets: 7, mag: 8, reloadTime: 2.4 }
+    ];
+
+    function buildFpsGunMesh(idx) {
+      while (fpsGunBody.children.length) {
+        const c = fpsGunBody.children[0];
+        fpsGunBody.remove(c);
+        c.geometry.dispose();
+        c.material.dispose();
+      }
+      const addPart = (w, h, d, col, x, y, z, rx = 0) => {
+        const m = new THREE.Mesh(
+          new THREE.BoxGeometry(w, h, d),
+          new THREE.MeshStandardMaterial({ color: col, metalness: 0.75, roughness: 0.3 })
+        );
+        m.position.set(x, y, z);
+        if (rx) m.rotation.x = rx;
+        fpsGunBody.add(m);
+      };
+      const M = 0x5b6670, D = 0x1b2025, K = 0x2d353c, A = idx === 1 ? 0x38bdf8 : 0xf97316;
+      if (idx === 0) {
+        addPart(0.1, 0.14, 0.5, M, 0, 0, 0);
+        addPart(0.085, 0.09, 0.34, K, 0, 0.01, -0.4);
+        addPart(0.04, 0.04, 0.3, D, 0, 0.02, -0.68);
+        addPart(0.06, 0.2, 0.09, K, 0, -0.15, -0.1, 0.15);
+        addPart(0.1, 0.025, 0.34, A, 0, 0.055, -0.4);
+        muzzleGroup.position.z = -0.88;
+      } else if (idx === 1) {
+        addPart(0.09, 0.13, 0.55, M, 0, 0, 0);
+        addPart(0.04, 0.04, 0.95, D, 0, 0.02, -0.75);
+        addPart(0.07, 0.07, 0.3, D, 0, 0.14, -0.05);
+        addPart(0.09, 0.09, 0.05, A, 0, 0.14, -0.22);
+        muzzleGroup.position.z = -1.3;
+      } else {
+        addPart(0.1, 0.13, 0.42, M, 0, 0, 0);
+        addPart(0.05, 0.05, 0.85, D, 0, 0.03, -0.62);
+        addPart(0.09, 0.08, 0.24, 0x7a5230, 0, -0.05, -0.5);
+        addPart(0.02, 0.04, 0.02, A, 0, 0.075, -0.95);
+        muzzleGroup.position.z = -1.05;
+      }
+    }
+    buildFpsGunMesh(0);
+
+    // 人型3D敵兵モデル（SHADOW FRONT参考）
+    const FPS_ENEMY_TYPES = {
+      std:   { name: '惑星トルーパー', hp: 35, spd: 3.3, scale: 1.0, dmg: 10, cols: [0x4f5d4a, 0x39432f], drops: { iron: 1, core: 1, crystal: 0 } },
+      heavy: { name: '重装装甲兵', hp: 80, spd: 2.2, scale: 1.18, dmg: 14, cols: [0x5a4a3c, 0x3b2f26], drops: { iron: 2, core: 1, crystal: 1 } },
+      elite: { name: 'エリート指揮官', hp: 55, spd: 4.1, scale: 1.06, dmg: 15, cols: [0x3c2a5c, 0x5b2f96], drops: { iron: 1, core: 2, crystal: 1 } }
+    };
+
+    function createHumanEnemyMesh(kind) {
+      const T = FPS_ENEMY_TYPES[kind];
+      const g = new THREE.Group();
+      const matCache = {};
+      const getM = c => matCache[c] || (matCache[c] = new THREE.MeshStandardMaterial({ color: c, roughness: 0.85 }));
+      const addPart = (parent, w, h, d, c, x, y, z) => {
+        const q = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), getM(c));
+        q.position.set(x, y, z);
+        q.castShadow = true;
+        parent.add(q);
+        return q;
+      };
+      const C = T.cols, SK = 0xe3bf98, DK = 0x1b1f24;
+      const makeLeg = () => {
+        const q = new THREE.Group();
+        addPart(q, 0.26, 0.5, 0.28, C[0], 0, -0.25, 0);
+        addPart(q, 0.3, 0.2, 0.3, DK, 0, -0.58, 0);
+        return q;
+      };
+      const L = makeLeg(), R = makeLeg();
+      L.position.set(-0.18, 0.88, 0);
+      R.position.set(0.18, 0.88, 0);
+      g.add(L, R);
+      g.userData.L = L;
+      g.userData.R = R;
+
+      // 胴体・アーマー
+      addPart(g, 0.7, 0.64, 0.4, C[0], 0, 1.3, 0);
+      addPart(g, 0.74, 0.5, 0.46, C[1], 0, 1.34, 0);
+      // 頭部・バイザー
+      addPart(g, 0.34, 0.34, 0.32, SK, 0, 1.82, 0);
+      addPart(g, 0.4, 0.2, 0.42, C[1], 0, 1.99, 0);
+      addPart(g, 0.34, 0.08, 0.05, kind === 'elite' ? 0xff3b2f : 0x0e1114, 0, 1.85, 0.17);
+      // 腕・ライフル
+      addPart(g, 0.14, 0.4, 0.14, C[0], -0.44, 1.4, 0);
+      addPart(g, 0.14, 0.4, 0.14, C[0], 0.44, 1.4, 0);
+      addPart(g, 0.1, 0.14, 0.55, DK, 0.24, 1.28, 0.52);
+
+      // 頭上HPバー
+      const bar = new THREE.Group();
+      const fg = new THREE.Mesh(
+        new THREE.PlaneGeometry(1, 0.1).translate(0.5, 0, 0),
+        new THREE.MeshBasicMaterial({ color: 0x5ddc6a })
+      );
+      fg.position.set(-0.5, 0, 0.01);
+      bar.add(new THREE.Mesh(new THREE.PlaneGeometry(1.06, 0.16), new THREE.MeshBasicMaterial({ color: 0x111418 })), fg);
+      bar.position.y = 2.45;
+      g.add(bar);
+      g.userData.bar = bar;
+      g.userData.fg = fg;
+
+      g.scale.setScalar(T.scale);
+      groundScene.add(g);
+      return g;
+    }
+
+    // 地上戦レイキャスト判定関数（SHADOW FRONT準拠）
+    function resolveGroundCol(p, r) {
+      for (const b of G_BX) {
+        const cx = Math.max(b.x - b.w / 2, Math.min(p.x, b.x + b.w / 2));
+        const cz = Math.max(b.z - b.d / 2, Math.min(p.z, b.z + b.d / 2));
+        const dx = p.x - cx, dz = p.z - cz, d = Math.hypot(dx, dz);
+        if (d < r) {
+          if (d < 1e-4) { p.x += r; continue; }
+          p.x += dx / d * (r - d);
+          p.z += dz / d * (r - d);
+        }
+      }
+    }
+    function rayBox(o, d, b) {
+      let a = 0, z = 1e9;
+      const mn = [b.x - b.w / 2, 0, b.z - b.d / 2], mx = [b.x + b.w / 2, b.h, b.z + b.d / 2];
+      for (let i = 0; i < 3; i++) {
+        if (Math.abs(d[i]) < 1e-8) {
+          if (o[i] < mn[i] || o[i] > mx[i]) return 1e9;
+        } else {
+          let t1 = (mn[i] - o[i]) / d[i], t2 = (mx[i] - o[i]) / d[i];
+          if (t1 > t2) { const q = t1; t1 = t2; t2 = q; }
+          a = Math.max(a, t1); z = Math.min(z, t2);
+          if (a > z) return 1e9;
+        }
+      }
+      return a;
+    }
+    function wallDistance(o, d) {
+      let m = 1e9;
+      for (const b of G_BX) m = Math.min(m, rayBox(o, d, b));
+      for (const b of G_PL) m = Math.min(m, rayBox(o, d, b));
+      return m;
+    }
+    function raySphere(o, d, c, r) {
+      const x = o[0] - c[0], y = o[1] - c[1], z = o[2] - c[2];
+      const b = x * d[0] + y * d[1] + z * d[2];
+      const cc = x * x + y * y + z * z - r * r;
+      const D = b * b - cc;
+      if (D < 0) return 1e9;
+      const t = -b - Math.sqrt(D);
+      return t > 0 ? t : 1e9;
+    }
+
+    // ==========================================================================
+    // ゲーム状態＆モード切替（SPACE ↔ GROUND）
     // ==========================================
     let gameState = 'MENU';
+    let battlePhase = 'SPACE'; // 'SPACE' or 'GROUND'
     let gameMode = 'solo';
     let pausedFromPlay = false;
 
     let hp = 100, maxHp = 100, kills = 0;
-    let shipYaw = 0;
-    let shipPitch = 0;
-    let missileCharge = 100;
-    let gateBoostTimer = 0;
-    let healTick = 0;
-    let syncTick = 0;
+    let shipYaw = 0, shipPitch = 0;
+    let missileCharge = 100, gateBoostTimer = 0, healTick = 0, syncTick = 0;
+    let nearbyPlanet = null;
+    let currentPlanet = null;
 
-    let mouseNormX = 0;
-    let mouseNormY = 0;
+    // 地上FPSプレイヤー状態
+    const fpsPlayer = {
+      x: 0, z: 16, y: 0, cy: 0, vy: 0,
+      yaw: 0, pitch: 0,
+      wIdx: 0, ammo: [30, 5, 8], reloadTimer: 0, fireCD: 0,
+      ads: false, scope: false, dash: false,
+      sinceHit: 99, heal: false, flash: 0, kick: 0
+    };
+    let fpsFiring = false;
+    let flashTimer = 0;
+    const groundEnemies = [];
+    const groundLoots = [];
+    const tracers = [];
+    const hitIndicators = [];
+
+    function addTracer(a, b, col) {
+      const line = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([a, b]),
+        new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.85 })
+      );
+      groundScene.add(line);
+      tracers.push({ line, t: 0.08 });
+    }
+
+    function addHitIndicator(ex, ez) {
+      const el = document.createElement('div');
+      el.style.cssText = 'position:fixed;left:50%;top:50%;width:0;height:0';
+      el.innerHTML = '<div style="position:absolute;left:-46px;top:-150px;width:92px;height:22px;border-radius:50% 50% 0 0;background:linear-gradient(#ff2a2a,#ff2a2a00)"></div>';
+      document.getElementById('hit-ind-layer').appendChild(el);
+      hitIndicators.push({ el, x: ex, z: ez, t: 1.3 });
+    }
+
+    function showHitMarker(isHead) {
+      const hm = document.getElementById('fps-hm');
+      hm.style.borderColor = isHead ? '#ef4444' : '#f97316';
+      hm.style.transition = 'none';
+      hm.style.opacity = 1;
+      requestAnimationFrame(() => {
+        hm.style.transition = 'opacity 0.25s';
+        hm.style.opacity = 0;
+      });
+    }
+
+    // マウス入力
+    let mouseNormX = 0, mouseNormY = 0;
     const crosshairEl = document.getElementById('crosshair');
 
     window.addEventListener('mousemove', (e) => {
-      mouseNormX = (e.clientX / window.innerWidth) * 2 - 1;
-      mouseNormY = (e.clientY / window.innerHeight) * 2 - 1;
-      crosshairEl.style.left = e.clientX + 'px';
-      crosshairEl.style.top = e.clientY + 'px';
+      if (battlePhase === 'SPACE') {
+        mouseNormX = (e.clientX / window.innerWidth) * 2 - 1;
+        mouseNormY = (e.clientY / window.innerHeight) * 2 - 1;
+        crosshairEl.style.left = e.clientX + 'px';
+        crosshairEl.style.top = e.clientY + 'px';
+      } else if (battlePhase === 'GROUND' && gameState === 'PLAYING') {
+        const sensMult = config.sens * 0.045 * (fpsPlayer.scope ? 0.22 : fpsPlayer.ads ? 0.6 : 1.0);
+        if (document.pointerLockElement === renderer.domElement) {
+          fpsPlayer.yaw -= e.movementX * sensMult;
+          fpsPlayer.pitch = Math.max(-1.4, Math.min(1.4, fpsPlayer.pitch - e.movementY * sensMult));
+        }
+      }
     });
 
     window.addEventListener('mousedown', (e) => {
       if (gameState !== 'PLAYING') return;
       if (e.target.tagName === 'BUTTON') return;
-      if (e.button === 0) firePlayerWeapons();
-      if (e.button === 2) fireHomingMissiles();
+
+      if (battlePhase === 'SPACE') {
+        if (e.button === 0) firePlayerWeapons();
+        if (e.button === 2) fireHomingMissiles();
+      } else if (battlePhase === 'GROUND') {
+        if (document.pointerLockElement !== renderer.domElement) {
+          try { renderer.domElement.requestPointerLock(); } catch (err) {}
+        }
+        if (e.button === 0) fpsFiring = true;
+        if (e.button === 2) {
+          if (fpsPlayer.wIdx === 1) fpsPlayer.scope = !fpsPlayer.scope;
+          else fpsPlayer.ads = true;
+        }
+      }
     });
 
-    const lasers = [];
-    const enemyBullets = [];
-    const missiles = [];
-    const enemies = [];
-    const loots = [];
-    const particles = [];
+    window.addEventListener('mouseup', (e) => {
+      if (e.button === 0) fpsFiring = false;
+      if (e.button === 2 && battlePhase === 'GROUND') fpsPlayer.ads = false;
+    });
+
+    // ★惑星降下 ⇔ 宇宙帰還の切り替え
+    function togglePlanetLanding() {
+      if (gameState !== 'PLAYING') return;
+
+      if (battlePhase === 'SPACE' && nearbyPlanet) {
+        // 惑星へ降下！
+        battlePhase = 'GROUND';
+        currentPlanet = nearbyPlanet;
+        document.getElementById('land-prompt').classList.add('hidden');
+        crosshairEl.classList.add('hidden');
+        document.getElementById('center-dot').classList.add('hidden');
+
+        // 惑星ごとのカラーテーマ反映
+        groundScene.fog.color.setHex(currentPlanet.ground);
+        gFloorMat.color.setHex(currentPlanet.ground);
+        gHemi.color.setHex(currentPlanet.sky);
+
+        // 着陸地点の宇宙船を最新カラー・パーツに更新
+        landedShipBeacon.remove(parkedShip);
+        const updatedShip = buildPlayerShip(saveData.shipColor, saveData.crafted);
+        updatedShip.scale.setScalar(0.85);
+        updatedShip.position.y = 1.2;
+        landedShipBeacon.add(updatedShip);
+
+        // FPSプレイヤー初期化
+        fpsPlayer.x = 0; fpsPlayer.z = 14; fpsPlayer.y = 0; fpsPlayer.cy = 0; fpsPlayer.vy = 0;
+        fpsPlayer.yaw = 0; fpsPlayer.pitch = 0;
+        fpsPlayer.wIdx = 0; fpsPlayer.ammo = [30, 5, 8]; fpsPlayer.reloadTimer = 0;
+        fpsPlayer.ads = false; fpsPlayer.scope = false; fpsPlayer.sinceHit = 99;
+        buildFpsGunMesh(0);
+
+        clearGroundEntities();
+        const initialSoldiers = config.diff === 'hard' ? 6 : 4;
+        for (let i = 0; i < initialSoldiers; i++) spawnGroundSoldier();
+
+        // UI切り替え
+        document.getElementById('fps-cross').classList.remove('hidden');
+        document.getElementById('fps-weapon-hud').classList.remove('hidden');
+        document.getElementById('fps-lock-tip').classList.remove('hidden');
+        document.getElementById('mode-label').textContent = `【🪐 ${currentPlanet.name} 地上戦 (${getDiffBalance().label})】`;
+        document.getElementById('controls-help').innerHTML =
+          '<b>WASD</b> 移動 | <b>Space</b> ジャンプ | <b>Shift</b> ダッシュ | <b>R</b> リロード<br>' +
+          '<b>1/2/3</b> 武器切替 | <b>右クリック/V</b> 精密スコープ | <b>宇宙船でF</b> 宇宙へ帰還';
+        document.getElementById('radar-legend').textContent = '赤:敵兵 / 青:宇宙船 / 黄:資材';
+        const btnToggle = document.getElementById('btn-land-toggle');
+        btnToggle.style.display = 'block';
+        btnToggle.textContent = '🚀 宇宙へ帰還 [F]';
+
+        updateHUD();
+        updateFpsWeaponHUD();
+        showToast(`🪐 ${currentPlanet.name} に着陸！地上銃撃戦を開始！`);
+        try { renderer.domElement.requestPointerLock(); } catch (e) {}
+
+      } else if (battlePhase === 'GROUND') {
+        // 宇宙船の近くにいるか確認（または右上のボタンから帰還）
+        battlePhase = 'SPACE';
+        fpsFiring = false;
+        fpsPlayer.scope = false;
+        fpsPlayer.ads = false;
+        try { document.exitPointerLock(); } catch (e) {}
+
+        clearGroundEntities();
+        document.getElementById('fps-cross').classList.add('hidden');
+        document.getElementById('fps-scope').classList.add('hidden');
+        document.getElementById('fps-weapon-hud').classList.add('hidden');
+        document.getElementById('fps-lock-tip').classList.add('hidden');
+        document.getElementById('fps-vig').style.opacity = 0;
+        document.getElementById('land-prompt').classList.add('hidden');
+
+        crosshairEl.classList.remove('hidden');
+        document.getElementById('center-dot').classList.remove('hidden');
+        document.getElementById('mode-label').textContent = gameMode === 'online'
+          ? `【🌐 3DオンラインPvP (ID: ${myPeerId || '接続中'})】`
+          : `【🚀 3D銀河サバイバル (${getDiffBalance().label})】`;
+        document.getElementById('controls-help').innerHTML =
+          '<b>マウス移動</b> 360°旋回 | <b>W/S</b> 加速・減速 | <b>A/D</b> 横移動<br>' +
+          '<b>左クリック / Space</b> ビーム | <b>右クリック / E</b> ミサイル | <b>F</b> 惑星降下';
+        document.getElementById('radar-legend').textContent = '赤:敵 / 紫:対人 / 緑:回復基地 / 水色:惑星';
+        document.getElementById('btn-land-toggle').style.display = 'none';
+
+        // 惑星から少し離れた宇宙空間へ発進
+        if (currentPlanet) {
+          shipGroup.position.set(currentPlanet.x, currentPlanet.y + currentPlanet.r + 28, currentPlanet.z + 25);
+        }
+        updateHUD();
+        showToast('🚀 宇宙空間へ帰還しました！');
+      }
+    }
+
+    function clearGroundEntities() {
+      groundEnemies.forEach(e => groundScene.remove(e.mesh));
+      groundEnemies.length = 0;
+      groundLoots.forEach(l => groundScene.remove(l));
+      groundLoots.length = 0;
+      tracers.forEach(t => { groundScene.remove(t.line); t.line.geometry.dispose(); });
+      tracers.length = 0;
+      hitIndicators.forEach(h => h.el.remove());
+      hitIndicators.length = 0;
+    }
+
+    function updateFpsWeaponHUD() {
+      const w = FPS_WEAPONS[fpsPlayer.wIdx];
+      document.getElementById('fps-wname').textContent = `${fpsPlayer.wIdx + 1}: ${w.name}`;
+      document.getElementById('fps-ammo').textContent = fpsPlayer.reloadTimer > 0
+        ? 'リロード中...'
+        : `${fpsPlayer.ammo[fpsPlayer.wIdx]} / ${w.mag}`;
+    }
+
+    function reloadFpsWeapon() {
+      const w = FPS_WEAPONS[fpsPlayer.wIdx];
+      if (fpsPlayer.reloadTimer > 0 || fpsPlayer.ammo[fpsPlayer.wIdx] >= w.mag) return;
+      fpsPlayer.reloadTimer = w.reloadTime;
+      playBeep(300, 0.1, 0.05);
+      updateFpsWeaponHUD();
+    }
+
+    function fireFpsWeapon() {
+      const w = FPS_WEAPONS[fpsPlayer.wIdx];
+      if (fpsPlayer.reloadTimer > 0 || fpsPlayer.fireCD > 0) return;
+      if (fpsPlayer.ammo[fpsPlayer.wIdx] <= 0) {
+        reloadFpsWeapon();
+        return;
+      }
+
+      fpsPlayer.ammo[fpsPlayer.wIdx]--;
+      fpsPlayer.fireCD = w.rate;
+      fpsPlayer.kick = 0.09;
+      updateFpsWeaponHUD();
+
+      // マズルフラッシュ＆発射音
+      fPlane1.visible = fPlane2.visible = true;
+      muzzleGroup.rotation.z = Math.random() * 6.28;
+      flashTimer = 0.045;
+      playBeep(w.dmg > 50 ? 95 : 190, 0.08, 0.07);
+
+      // クラフト強化倍率
+      let craftDmgMult = 1.0;
+      if (saveData.crafted.includes('crystal_nova')) craftDmgMult = 1.5;
+      else if (saveData.crafted.includes('plasma_cannon')) craftDmgMult = 1.25;
+
+      const origin = [fpsPlayer.x, 1.7 + fpsPlayer.cy, fpsPlayer.z];
+      const mzWorld = groundCamera.localToWorld(new THREE.Vector3(0.24, -0.18, -0.9));
+      const baseDir = new THREE.Vector3();
+      groundCamera.getWorldDirection(baseDir);
+
+      for (let p = 0; p < w.pellets; p++) {
+        const dirVec = baseDir.clone();
+        const sp = w.spread * (fpsPlayer.scope ? 0.1 : fpsPlayer.ads ? 0.35 : 1.0);
+        dirVec.x += (Math.random() - 0.5) * 2 * sp;
+        dirVec.y += (Math.random() - 0.5) * 2 * sp;
+        dirVec.z += (Math.random() - 0.5) * 2 * sp;
+        dirVec.normalize();
+        const dArr = [dirVec.x, dirVec.y, dirVec.z];
+
+        let bestDist = wallDistance(origin, dArr);
+        let hitEnemy = null;
+        let isHeadshot = false;
+
+        for (const e of groundEnemies) {
+          if (e.hp <= 0) continue;
+          const sc = FPS_ENEMY_TYPES[e.kind].scale;
+          const bodyCenter = [e.x, 0.95 * sc + e.y, e.z];
+          const headCenter = [e.x, 1.82 * sc + e.y, e.z];
+          const tb = raySphere(origin, dArr, bodyCenter, 0.62 * sc);
+          const th = raySphere(origin, dArr, headCenter, 0.32 * sc);
+          const t = Math.min(tb, th);
+          if (t < bestDist) {
+            bestDist = t;
+            hitEnemy = e;
+            isHeadshot = th < tb;
+          }
+        }
+
+        const hitPos = new THREE.Vector3(
+          origin[0] + dArr[0] * Math.min(bestDist, 70),
+          origin[1] + dArr[1] * Math.min(bestDist, 70),
+          origin[2] + dArr[2] * Math.min(bestDist, 70)
+        );
+        addTracer(mzWorld, hitPos, saveData.crafted.includes('crystal_nova') ? 0xe879f9 : 0xffe28a);
+
+        if (hitEnemy) {
+          const totalDmg = Math.round(w.dmg * craftDmgMult * (isHeadshot ? 2.0 : 1.0));
+          hitEnemy.hp -= totalDmg;
+          showHitMarker(isHeadshot);
+          if (hitEnemy.hp <= 0) {
+            hitEnemy.dying = 0.4;
+            kills++;
+            playBeep(520, 0.12, 0.12);
+            const T = FPS_ENEMY_TYPES[hitEnemy.kind];
+            dropGroundMaterials(new THREE.Vector3(hitEnemy.x, hitEnemy.y + 0.6, hitEnemy.z), T.drops);
+            updateHUD();
+            showToast(`💥 ${T.name}を撃破！${isHeadshot ? '【HEADSHOT!】' : ''}`);
+          }
+        }
+      }
+    }
+
+    const GROUND_SPAWNS = [{ x: -15, z: -16 }, { x: 0, z: -17 }, { x: 15, z: -16 }, { x: -18, z: -6 }, { x: 18, z: -6 }];
+    let gSpawnIdx = 0;
+
+    function spawnGroundSoldier() {
+      const bal = getDiffBalance();
+      const roll = Math.random();
+      let kind = 'std';
+      if (config.diff === 'hard') {
+        if (roll > 0.65) kind = 'elite';
+        else if (roll > 0.35) kind = 'heavy';
+      } else {
+        if (roll > 0.82) kind = 'elite';
+        else if (roll > 0.58) kind = 'heavy';
+      }
+      const T = FPS_ENEMY_TYPES[kind];
+      const sp = GROUND_SPAWNS[gSpawnIdx++ % GROUND_SPAWNS.length];
+      const mesh = createHumanEnemyMesh(kind);
+      const maxEhp = Math.round(T.hp * bal.fpsHpMult);
+      groundEnemies.push({
+        kind,
+        x: sp.x, z: sp.z, y: 0,
+        hp: maxEhp, maxHp: maxEhp,
+        mesh,
+        fireTimer: 600 + Math.random() * bal.fpsFireMs,
+        strafeDir: Math.random() < 0.5 ? 1 : -1,
+        walkPhase: Math.random() * 6,
+        dying: 0,
+        gone: false
+      });
+    }
+
+    function dropGroundMaterials(pos, drops) {
+      const list = [];
+      for (let i = 0; i < drops.iron; i++) list.push({ type: 'iron', color: 0x94a3b8 });
+      for (let i = 0; i < drops.core; i++) list.push({ type: 'core', color: 0xfacc15 });
+      for (let i = 0; i < drops.crystal; i++) list.push({ type: 'crystal', color: 0xe879f9 });
+
+      list.forEach(item => {
+        const mesh = new THREE.Mesh(
+          new THREE.OctahedronGeometry(0.38),
+          new THREE.MeshStandardMaterial({ color: item.color, emissive: item.color, emissiveIntensity: 0.8 })
+        );
+        mesh.position.copy(pos);
+        mesh.position.x += (Math.random() - 0.5) * 1.4;
+        mesh.position.z += (Math.random() - 0.5) * 1.4;
+        mesh.userData = { matType: item.type };
+        groundScene.add(mesh);
+        groundLoots.push(mesh);
+      });
+    }
+
+    // ==========================================================================
+    // 共通UI・HUD・クラフトシステム
+    // ==========================================================================
+    const lasers = [], enemyBullets = [], missiles = [], enemies = [], loots = [], particles = [];
 
     function showToast(msg) {
       const t = document.getElementById('toast');
@@ -955,11 +1666,14 @@
       ['m-core', 's-core'].forEach(id => document.getElementById(id).textContent = saveData.core);
       ['m-crystal', 's-crystal'].forEach(id => document.getElementById(id).textContent = saveData.crystal);
       document.getElementById('loot-hud').textContent = `🔩 鉄: ${saveData.iron} | ⚡ コア: ${saveData.core} | 💎 結晶: ${saveData.crystal}`;
-      document.getElementById('hp-text').textContent = `耐久力: ${hp} / ${maxHp}`;
+      document.getElementById('hp-text').textContent = `耐久力: ${Math.ceil(hp)} / ${maxHp}${fpsPlayer.heal ? ' (＋遮蔽物回復中)' : ''}`;
       document.getElementById('hp-text').style.color = hp <= 35 ? '#ef4444' : '#4ade80';
 
       const mHud = document.getElementById('missile-hud');
-      if (missileCharge >= 100) {
+      if (battlePhase === 'GROUND') {
+        mHud.textContent = `🪐 地上戦モード（宇宙船へ戻り [F] で帰還）`;
+        mHud.style.color = '#38bdf8';
+      } else if (missileCharge >= 100) {
         mHud.textContent = '🚀 追尾ミサイル: READY! [右クリック / E]';
         mHud.style.color = '#f472b6';
       } else {
@@ -979,13 +1693,19 @@
         });
       }
       gameState = 'GAMEOVER';
+      battlePhase = 'SPACE';
+      fpsFiring = false;
+      try { document.exitPointerLock(); } catch (e) {}
+
       saveData.iron = 0;
       saveData.core = 0;
       saveData.crystal = 0;
       persist();
       updateHUD();
-      crosshairEl.classList.add('hidden');
-      document.getElementById('center-dot').classList.add('hidden');
+
+      ['crosshair', 'center-dot', 'fps-cross', 'fps-scope', 'fps-weapon-hud', 'fps-lock-tip', 'land-prompt'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
       document.getElementById('gameover-overlay').classList.remove('hidden');
     }
 
@@ -997,9 +1717,14 @@
 
     function showMainMenu() {
       gameState = 'MENU';
-      clearEntities();
+      battlePhase = 'SPACE';
+      fpsFiring = false;
+      try { document.exitPointerLock(); } catch (e) {}
+
+      clearSpaceEntities();
+      clearGroundEntities();
       hideAllOverlays();
-      ['hud', 'radar-box', 'play-btns', 'nora-log', 'crosshair', 'center-dot'].forEach(id => {
+      ['hud', 'radar-box', 'play-btns', 'nora-log', 'crosshair', 'center-dot', 'fps-cross', 'fps-scope', 'fps-weapon-hud', 'fps-lock-tip', 'land-prompt'].forEach(id => {
         document.getElementById(id).classList.add('hidden');
       });
       updateHUD();
@@ -1014,7 +1739,10 @@
       pausedFromPlay = fromPlay;
       if (fromPlay) {
         gameState = 'CRAFT_PAUSE';
+        fpsFiring = false;
+        try { document.exitPointerLock(); } catch (e) {}
         crosshairEl.classList.add('hidden');
+        document.getElementById('fps-cross').classList.add('hidden');
       }
       hideAllOverlays();
       renderCraftList();
@@ -1026,7 +1754,8 @@
       hideAllOverlays();
       if (pausedFromPlay) {
         gameState = 'PLAYING';
-        crosshairEl.classList.remove('hidden');
+        if (battlePhase === 'SPACE') crosshairEl.classList.remove('hidden');
+        else document.getElementById('fps-cross').classList.remove('hidden');
       } else {
         showMainMenu();
       }
@@ -1078,7 +1807,7 @@
         saveData.crafted.push(r.id);
         if (r.id === 'twin_wing') { maxHp += 70; hp += 70; }
         rebuildPlayerShip();
-        showToast(`🔧 「${r.name}」を機体に合体しました！`);
+        showToast(`🔧 「${r.name}」を装備・合体しました！`);
       }
 
       persist();
@@ -1101,9 +1830,9 @@
       document.getElementById('nora-menu').classList.remove('hidden');
     }
 
-    function clearEntities() {
+    function clearSpaceEntities() {
       [lasers, enemyBullets, missiles, enemies, loots, particles].forEach(arr => {
-        arr.forEach(o => scene.remove(o));
+        arr.forEach(o => spaceScene.remove(o));
         arr.length = 0;
       });
     }
@@ -1115,8 +1844,10 @@
 
     function startGame(mode) {
       gameMode = mode;
+      battlePhase = 'SPACE';
       gameState = 'PLAYING';
-      clearEntities();
+      clearSpaceEntities();
+      clearGroundEntities();
       hideAllOverlays();
 
       const bal = getDiffBalance();
@@ -1135,6 +1866,7 @@
       ['hud', 'radar-box', 'play-btns', 'crosshair', 'center-dot'].forEach(id => {
         document.getElementById(id).classList.remove('hidden');
       });
+      document.getElementById('btn-land-toggle').style.display = 'none';
       updateHUD();
 
       const enemyCount = mode === 'online' ? 5 : bal.maxEnemies;
@@ -1147,18 +1879,54 @@
       }
     }
 
-    // ==========================================
-    // 3D操縦＆武装システム
-    // ==========================================
+    // ==========================================================================
+    // キーボード入力（宇宙戦 ＆ 地上FPS戦共通）
+    // ==========================================================================
     const keys = {};
     window.addEventListener('keydown', (e) => {
       keys[e.code] = true;
       if (gameState !== 'PLAYING') return;
-      if (e.code === 'Space') { e.preventDefault(); firePlayerWeapons(); }
-      if (e.code === 'KeyE') { e.preventDefault(); fireHomingMissiles(); }
+
+      if (e.code === 'KeyF') {
+        e.preventDefault();
+        if (battlePhase === 'SPACE' && nearbyPlanet) {
+          togglePlanetLanding();
+        } else if (battlePhase === 'GROUND') {
+          const distToShip = Math.hypot(fpsPlayer.x - landedShipBeacon.position.x, fpsPlayer.z - landedShipBeacon.position.z);
+          if (distToShip < 6.5) {
+            togglePlanetLanding();
+          } else {
+            showToast('🚀 青いビーコンの宇宙船に近づいて [F] を押すと宇宙へ帰還できます！');
+          }
+        }
+      }
+
+      if (battlePhase === 'SPACE') {
+        if (e.code === 'Space') { e.preventDefault(); firePlayerWeapons(); }
+        if (e.code === 'KeyE') { e.preventDefault(); fireHomingMissiles(); }
+      } else if (battlePhase === 'GROUND') {
+        if (e.code === 'Digit1') { fpsPlayer.wIdx = 0; fpsPlayer.reloadTimer = 0; fpsPlayer.scope = false; buildFpsGunMesh(0); updateFpsWeaponHUD(); }
+        if (e.code === 'Digit2') { fpsPlayer.wIdx = 1; fpsPlayer.reloadTimer = 0; fpsPlayer.scope = false; buildFpsGunMesh(1); updateFpsWeaponHUD(); }
+        if (e.code === 'Digit3') { fpsPlayer.wIdx = 2; fpsPlayer.reloadTimer = 0; fpsPlayer.scope = false; buildFpsGunMesh(2); updateFpsWeaponHUD(); }
+        if (e.code === 'KeyR') reloadFpsWeapon();
+        if (e.code === 'KeyV') {
+          if (fpsPlayer.wIdx === 1) fpsPlayer.scope = !fpsPlayer.scope;
+          else fpsPlayer.ads = !fpsPlayer.ads;
+        }
+        if (e.code === 'Space') {
+          e.preventDefault();
+          const groundY = getGroundHeight(fpsPlayer.x, fpsPlayer.z);
+          if (fpsPlayer.y <= groundY + 0.02) {
+            fpsPlayer.vy = saveData.crafted.includes('hyper_thruster') ? 8.0 : 6.6;
+          }
+        }
+      }
     });
     window.addEventListener('keyup', (e) => keys[e.code] = false);
 
+    // ==========================================================================
+    // 宇宙戦の武器・敵生成・レーダー
+    // ==========================================================================
     function getForwardVector(yaw, pitch) {
       return new THREE.Vector3(
         -Math.sin(yaw) * Math.cos(pitch),
@@ -1194,18 +1962,14 @@
         laser.position.copy(shipGroup.position).addScaledVector(dir, 3.5);
         laser.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), dir);
         laser.userData = { vel: dir.clone().multiplyScalar(2.8), life: 80, power };
-        scene.add(laser);
+        spaceScene.add(laser);
         lasers.push(laser);
 
         if (gameMode === 'online') {
           sendNetPacket({
             type: 'fire',
-            x: laser.position.x,
-            y: laser.position.y,
-            z: laser.position.z,
-            dx: dir.x,
-            dy: dir.y,
-            dz: dir.z,
+            x: laser.position.x, y: laser.position.y, z: laser.position.z,
+            dx: dir.x, dy: dir.y, dz: dir.z,
             dmg: Math.round(14 * power)
           });
         }
@@ -1231,7 +1995,7 @@
         mMesh.position.copy(shipGroup.position);
         mMesh.position.x += (i - count / 2) * 1.4;
         mMesh.userData = { target, speed: 1.85, life: 140, power: 4.5 };
-        scene.add(mMesh);
+        spaceScene.add(mMesh);
         missiles.push(mMesh);
       }
       showToast('🚀 3D追尾ミサイル一斉発射！！');
@@ -1242,8 +2006,12 @@
       const bal = getDiffBalance();
       const roll = Math.random();
       let spec = ENEMY_TYPES[0];
-      // EASYとNORMALでは超弩級戦艦の出現率を控えめに
-      if (config.diff === 'easy') {
+      if (config.diff === 'hard') {
+        // HARDは超弩級戦艦と双胴突撃機の出現率が大幅アップ！
+        if (roll > 0.65) spec = ENEMY_TYPES[3];
+        else if (roll > 0.35) spec = ENEMY_TYPES[2];
+        else if (roll > 0.15) spec = ENEMY_TYPES[1];
+      } else if (config.diff === 'easy') {
         if (roll > 0.94) spec = ENEMY_TYPES[3];
         else if (roll > 0.65) spec = ENEMY_TYPES[2];
         else if (roll > 0.35) spec = ENEMY_TYPES[1];
@@ -1267,9 +2035,9 @@
       mesh.userData = {
         spec,
         hp: Math.max(1, Math.ceil(spec.hp * bal.hpMult)),
-        shootCD: Math.floor((65 + Math.random() * 50) * bal.cdMult)
+        shootCD: Math.floor((60 + Math.random() * 45) * bal.cdMult)
       };
-      scene.add(mesh);
+      spaceScene.add(mesh);
       enemies.push(mesh);
     }
 
@@ -1290,7 +2058,7 @@
         loot.position.y += (Math.random() - 0.5) * 5;
         loot.position.z += (Math.random() - 0.5) * 5;
         loot.userData = { matType: item.type };
-        scene.add(loot);
+        spaceScene.add(loot);
         loots.push(loot);
       });
     }
@@ -1302,7 +2070,7 @@
         p.position.copy(pos);
         p.userData.vel = new THREE.Vector3((Math.random() - 0.5) * 1.5, (Math.random() - 0.5) * 1.5, (Math.random() - 0.5) * 1.5);
         p.userData.life = 28;
-        scene.add(p);
+        spaceScene.add(p);
         particles.push(p);
       }
     }
@@ -1315,13 +2083,11 @@
       beam.position.copy(originPos).addScaledVector(dirVec, 3.2);
       beam.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), dirVec);
       beam.userData = { vel: dirVec.clone().multiplyScalar(speed), life: 110, dmg, ownerPeerId };
-      scene.add(beam);
+      spaceScene.add(beam);
       enemyBullets.push(beam);
     }
 
-    // ==========================================
-    // ミニマップ（レーダー）
-    // ==========================================
+    // ミニマップ（宇宙＆地上FPS両対応）
     const radarCtx = document.getElementById('radar').getContext('2d');
     function drawRadar() {
       const w = 130, h = 130, cx = w / 2, cy = h / 2;
@@ -1331,8 +2097,54 @@
       radarCtx.beginPath(); radarCtx.arc(cx, cy, 30, 0, Math.PI * 2); radarCtx.stroke();
       radarCtx.beginPath(); radarCtx.arc(cx, cy, 60, 0, Math.PI * 2); radarCtx.stroke();
 
-      const scale = 0.26;
+      if (battlePhase === 'GROUND') {
+        const k = 2.6;
+        // 帰還用宇宙船（水色）
+        {
+          const dx = (landedShipBeacon.position.x - fpsPlayer.x) * k;
+          const dz = (landedShipBeacon.position.z - fpsPlayer.z) * k;
+          radarCtx.fillStyle = '#38bdf8';
+          radarCtx.beginPath(); radarCtx.arc(cx + dx, cy + dz, 5, 0, Math.PI * 2); radarCtx.fill();
+        }
+        // ドロップ資材（黄）
+        groundLoots.forEach(l => {
+          const dx = (l.position.x - fpsPlayer.x) * k;
+          const dz = (l.position.z - fpsPlayer.z) * k;
+          radarCtx.fillStyle = '#fde047';
+          radarCtx.fillRect(cx + dx - 2, cy + dz - 2, 4, 4);
+        });
+        // 敵兵（赤）
+        groundEnemies.forEach(e => {
+          if (e.hp <= 0) return;
+          const dx = (e.x - fpsPlayer.x) * k;
+          const dz = (e.z - fpsPlayer.z) * k;
+          radarCtx.fillStyle = '#ff3355';
+          radarCtx.beginPath(); radarCtx.arc(cx + dx, cy + dz, 3.5, 0, Math.PI * 2); radarCtx.fill();
+        });
+        // 自分
+        radarCtx.save();
+        radarCtx.translate(cx, cy);
+        radarCtx.rotate(-fpsPlayer.yaw);
+        radarCtx.fillStyle = '#ffffff';
+        radarCtx.beginPath();
+        radarCtx.moveTo(0, -6); radarCtx.lineTo(4, 5); radarCtx.lineTo(-4, 5);
+        radarCtx.fill();
+        radarCtx.restore();
+        return;
+      }
 
+      const scale = 0.24;
+      // 惑星（水色の大きな円）
+      planets.forEach(p => {
+        const dx = (p.x - shipGroup.position.x) * scale;
+        const dz = (p.z - shipGroup.position.z) * scale;
+        const dist = Math.hypot(dx, dz);
+        const clamp = dist > 56 ? 56 / dist : 1;
+        radarCtx.fillStyle = 'rgba(56, 189, 248, 0.45)';
+        radarCtx.beginPath(); radarCtx.arc(cx + dx * clamp, cy + dz * clamp, 6, 0, Math.PI * 2); radarCtx.fill();
+      });
+
+      // 回復ステーション（緑）
       {
         const dx = (stationGroup.position.x - shipGroup.position.x) * scale;
         const dz = (stationGroup.position.z - shipGroup.position.z) * scale;
@@ -1342,15 +2154,7 @@
         radarCtx.fillRect(cx + dx * clamp - 4, cy + dz * clamp - 4, 8, 8);
       }
 
-      warpGates.forEach(g => {
-        const dx = (g.position.x - shipGroup.position.x) * scale;
-        const dz = (g.position.z - shipGroup.position.z) * scale;
-        if (Math.hypot(dx, dz) < 60) {
-          radarCtx.strokeStyle = '#38bdf8';
-          radarCtx.beginPath(); radarCtx.arc(cx + dx, cy + dz, 3.5, 0, Math.PI * 2); radarCtx.stroke();
-        }
-      });
-
+      // 資材（黄）
       loots.forEach(l => {
         const dx = (l.position.x - shipGroup.position.x) * scale;
         const dz = (l.position.z - shipGroup.position.z) * scale;
@@ -1360,6 +2164,7 @@
         }
       });
 
+      // 敵機（赤）
       enemies.forEach(e => {
         const dx = (e.position.x - shipGroup.position.x) * scale;
         const dz = (e.position.z - shipGroup.position.z) * scale;
@@ -1371,6 +2176,7 @@
         radarCtx.fill();
       });
 
+      // 対人プレイヤー（紫）
       Object.values(remotePlayers).forEach(rp => {
         const dx = (rp.mesh.position.x - shipGroup.position.x) * scale;
         const dz = (rp.mesh.position.z - shipGroup.position.z) * scale;
@@ -1392,12 +2198,255 @@
       radarCtx.restore();
     }
 
-    // ==========================================
-    // メインアニメーションループ
-    // ==========================================
-    function animate() {
+    // ==========================================================================
+    // 地上FPS戦フレーム更新（SHADOW FRONTロジック統合）
+    // ==========================================================================
+    function updateGroundPhase(dt) {
+      const bal = getDiffBalance();
+
+      // 敵兵の補充
+      const maxSoldiers = config.diff === 'hard' ? 7 : 5;
+      if (groundEnemies.filter(e => e.hp > 0).length < maxSoldiers && Math.random() < 0.03) {
+        spawnGroundSoldier();
+      }
+
+      // 矢印キーでの視点回転補助（ポインターロック解除時も操作可能）
+      const keyTurn = (keys['ArrowLeft'] ? 1 : 0) - (keys['ArrowRight'] ? 1 : 0);
+      fpsPlayer.yaw += keyTurn * 2.2 * dt;
+      fpsPlayer.pitch = Math.max(-1.4, Math.min(1.4, fpsPlayer.pitch + ((keys['ArrowUp'] ? 1 : 0) - (keys['ArrowDown'] ? 1 : 0)) * 1.6 * dt));
+
+      // WASD移動＋ダッシュ＋重力ジャンプ
+      const fwd = (keys['KeyW'] ? 1 : 0) - (keys['KeyS'] ? 1 : 0);
+      const strafe = (keys['KeyD'] ? 1 : 0) - (keys['KeyA'] ? 1 : 0);
+      const len = Math.hypot(fwd, strafe) || 1;
+      const hasHyper = saveData.crafted.includes('hyper_thruster');
+      fpsPlayer.dash = !fpsPlayer.scope && !fpsPlayer.ads && (keys['ShiftLeft'] || keys['ShiftRight']) && fwd > 0;
+
+      const moveSpd = fpsPlayer.scope ? 3.2 : fpsPlayer.ads ? 4.4 : fpsPlayer.dash ? (hasHyper ? 13.0 : 11.0) : (hasHyper ? 8.2 : 7.0);
+      const nx = fpsPlayer.x + (-Math.sin(fpsPlayer.yaw) * fwd + Math.cos(fpsPlayer.yaw) * strafe) / len * moveSpd * dt;
+      const nz = fpsPlayer.z + (-Math.cos(fpsPlayer.yaw) * fwd - Math.sin(fpsPlayer.yaw) * strafe) / len * moveSpd * dt;
+
+      if (getGroundHeight(nx, fpsPlayer.z) <= fpsPlayer.y + 0.65) fpsPlayer.x = nx;
+      if (getGroundHeight(fpsPlayer.x, nz) <= fpsPlayer.y + 0.65) fpsPlayer.z = nz;
+      resolveGroundCol(fpsPlayer, 0.45);
+
+      const gHeight = getGroundHeight(fpsPlayer.x, fpsPlayer.z);
+      fpsPlayer.vy -= 18 * dt;
+      fpsPlayer.y += fpsPlayer.vy * dt;
+      if (fpsPlayer.y <= gHeight) {
+        fpsPlayer.y = gHeight;
+        if (fpsPlayer.vy < 0) fpsPlayer.vy = 0;
+      }
+      fpsPlayer.cy += (fpsPlayer.y - fpsPlayer.cy) * Math.min(1, dt * 14);
+
+      // 遮蔽物に隠れて1.5秒経つと自動ナノ回復！
+      fpsPlayer.sinceHit += dt;
+      let spotted = false;
+      for (const e of groundEnemies) {
+        if (e.hp <= 0) continue;
+        const dx = fpsPlayer.x - e.x, dz = fpsPlayer.z - e.z, dist = Math.hypot(dx, dz) || 1;
+        if (dist > 34) continue;
+        const o = [e.x, e.y + 1.4, e.z];
+        if (wallDistance(o, [dx / dist, (fpsPlayer.y + 1.4 - o[1]) / dist, dz / dist]) >= dist * 0.98) {
+          spotted = true;
+          break;
+        }
+      }
+      const wasHeal = fpsPlayer.heal;
+      fpsPlayer.heal = !spotted && fpsPlayer.sinceHit > 1.5 && hp < maxHp;
+      if (fpsPlayer.heal) {
+        hp = Math.min(maxHp, hp + 14 * dt);
+        updateHUD();
+      } else if (wasHeal !== fpsPlayer.heal) {
+        updateHUD();
+      }
+
+      // 武器リロード＆射撃
+      fpsPlayer.fireCD = Math.max(0, fpsPlayer.fireCD - dt * 1000);
+      if (fpsPlayer.reloadTimer > 0) {
+        fpsPlayer.reloadTimer -= dt;
+        if (fpsPlayer.reloadTimer <= 0) {
+          fpsPlayer.reloadTimer = 0;
+          fpsPlayer.ammo[fpsPlayer.wIdx] = FPS_WEAPONS[fpsPlayer.wIdx].mag;
+          updateFpsWeaponHUD();
+        }
+      } else if (fpsFiring && fpsPlayer.fireCD <= 0 && !fpsPlayer.dash) {
+        fireFpsWeapon();
+      }
+      fpsPlayer.kick = Math.max(0, fpsPlayer.kick - dt * 0.5);
+
+      // 敵兵AI更新
+      for (const e of groundEnemies) {
+        if (e.dying > 0) {
+          e.dying -= dt;
+          e.mesh.rotation.x = -(1 - e.dying / 0.4) * 1.5;
+          e.mesh.position.y = e.y;
+          e.mesh.userData.bar.visible = false;
+          if (e.dying <= 0) {
+            groundScene.remove(e.mesh);
+            e.gone = true;
+          }
+          continue;
+        }
+
+        const T = FPS_ENEMY_TYPES[e.kind];
+        const dx = fpsPlayer.x - e.x, dz = fpsPlayer.z - e.z, dist = Math.hypot(dx, dz) || 1;
+        const spd = T.spd * bal.fpsSpd * dt;
+        e.walkPhase += dt;
+
+        if (dist > 13) {
+          e.x += dx / dist * spd;
+          e.z += dz / dist * spd;
+        } else if (dist < 6.5) {
+          e.x -= dx / dist * spd;
+          e.z -= dz / dist * spd;
+        } else {
+          e.x += -dz / dist * spd * e.strafeDir;
+          e.z += dx / dist * spd * e.strafeDir;
+          if (Math.sin(e.walkPhase * 0.8) > 0.96) e.strafeDir *= -1;
+        }
+        resolveGroundCol(e, 0.5);
+        e.y += (getGroundHeight(e.x, e.z) - e.y) * Math.min(1, dt * 8);
+
+        e.mesh.position.set(e.x, e.y + Math.abs(Math.sin(e.walkPhase * 7)) * 0.05, e.z);
+        e.mesh.rotation.y = Math.atan2(dx, dz);
+        const U = e.mesh.userData;
+        const legSwing = Math.sin(e.walkPhase * 6 * (T.spd / 3.2)) * 0.6;
+        U.L.rotation.x = legSwing;
+        U.R.rotation.x = -legSwing;
+        U.bar.quaternion.copy(e.mesh.quaternion).invert().multiply(groundCamera.quaternion);
+        const ratio = Math.max(0.001, e.hp / e.maxHp);
+        U.fg.scale.x = ratio;
+        U.fg.material.color.setHSL(ratio * 0.33, 0.8, 0.5);
+
+        // 敵兵の銃撃
+        e.fireTimer -= dt * 1000;
+        if (e.fireTimer <= 0 && dist < 35) {
+          const origin = [e.x, 1.4 + e.y, e.z];
+          const dir = [dx / dist, (1.5 + fpsPlayer.y - 1.4 - e.y) / dist, dz / dist];
+          e.fireTimer = bal.fpsFireMs * (0.8 + Math.random() * 0.4);
+
+          if (wallDistance(origin, dir) > dist) {
+            const hit = Math.random() < bal.fpsAcc * (1 - dist / 58);
+            const jitter = hit ? 0 : (Math.random() - 0.5) * 2.2;
+            const endPt = new THREE.Vector3(fpsPlayer.x + jitter, 1.35 + fpsPlayer.y, fpsPlayer.z + jitter);
+            addTracer(new THREE.Vector3(origin[0], origin[1], origin[2]), endPt, 0xff6a4a);
+            playBeep(145, 0.06, 0.04);
+
+            if (hit) {
+              const dmg = Math.max(1, Math.round(T.dmg * bal.dmgMult));
+              hp = Math.max(0, hp - dmg);
+              fpsPlayer.sinceHit = 0;
+              fpsPlayer.flash = 0.32;
+              addHitIndicator(e.x, e.z);
+              playBeep(90, 0.12, 0.1);
+              updateHUD();
+              if (hp <= 0) {
+                triggerGameOver();
+                return;
+              }
+            }
+          }
+        }
+      }
+      for (let i = groundEnemies.length - 1; i >= 0; i--) {
+        if (groundEnemies[i].gone) groundEnemies.splice(i, 1);
+      }
+
+      // 地上ドロップ資材回収
+      for (let i = groundLoots.length - 1; i >= 0; i--) {
+        const l = groundLoots[i];
+        l.rotation.y += 0.06;
+        const d = Math.hypot(l.position.x - fpsPlayer.x, l.position.z - fpsPlayer.z);
+        if (d < 2.2) {
+          const t = l.userData.matType;
+          if (t === 'iron') saveData.iron++;
+          if (t === 'core') saveData.core++;
+          if (t === 'crystal') saveData.crystal++;
+          persist();
+          updateHUD();
+          playBeep(660, 0.08, 0.05, 'sine');
+          groundScene.remove(l);
+          groundLoots.splice(i, 1);
+        }
+      }
+
+      // 帰還ビーコン（宇宙船）との距離チェック
+      const distShip = Math.hypot(fpsPlayer.x - landedShipBeacon.position.x, fpsPlayer.z - landedShipBeacon.position.z);
+      const promptEl = document.getElementById('land-prompt');
+      if (distShip < 6.5) {
+        promptEl.textContent = '🚀 [Fキー] 宇宙船に乗り込んで宇宙へ帰還する';
+        promptEl.classList.remove('hidden');
+      } else {
+        promptEl.classList.add('hidden');
+      }
+
+      // FPSカメラ＆銃アニメーション
+      const isMoving = keys['KeyW'] || keys['KeyS'] || keys['KeyA'] || keys['KeyD'];
+      const bob = isMoving ? Math.sin(performance.now() / (fpsPlayer.dash ? 85 : 130)) * (fpsPlayer.dash ? 0.06 : 0.03) : 0;
+      groundCamera.position.set(fpsPlayer.x, 1.7 + fpsPlayer.cy + bob, fpsPlayer.z);
+      groundCamera.rotation.set(fpsPlayer.pitch, fpsPlayer.yaw, 0);
+
+      const targetFov = fpsPlayer.scope ? 16 : fpsPlayer.ads ? 52 : fpsPlayer.dash ? 83 : 75;
+      groundCamera.fov += (targetFov - groundCamera.fov) * Math.min(1, dt * 12);
+      groundCamera.updateProjectionMatrix();
+
+      document.getElementById('fps-scope').classList.toggle('hidden', !fpsPlayer.scope);
+      document.getElementById('fps-cross').classList.toggle('hidden', fpsPlayer.scope);
+      fpsGun.visible = !fpsPlayer.scope;
+
+      const relProg = fpsPlayer.reloadTimer > 0 ? Math.sin(Math.PI * (1 - fpsPlayer.reloadTimer / FPS_WEAPONS[fpsPlayer.wIdx].reloadTime)) : 0;
+      fpsGun.position.z = -0.5 + fpsPlayer.kick * 2;
+      fpsGun.rotation.x = fpsPlayer.kick * 2 + (fpsPlayer.dash ? 0.45 : 0) + relProg * 0.7;
+      fpsGun.position.x += ((fpsPlayer.ads ? 0 : 0.24) - fpsGun.position.x) * Math.min(1, dt * 14);
+      fpsGun.position.y += ((fpsPlayer.ads ? -0.16 : fpsPlayer.dash ? -0.3 : -0.22) - relProg * 0.14 - fpsGun.position.y) * Math.min(1, dt * 14);
+
+      if (flashTimer > 0) {
+        flashTimer -= dt;
+        if (flashTimer <= 0) fPlane1.visible = fPlane2.visible = false;
+      }
+
+      // トレーサー＆被弾インジケーター更新
+      for (let i = tracers.length - 1; i >= 0; i--) {
+        tracers[i].t -= dt;
+        if (tracers[i].t <= 0) {
+          groundScene.remove(tracers[i].line);
+          tracers[i].line.geometry.dispose();
+          tracers.splice(i, 1);
+        }
+      }
+      for (let i = hitIndicators.length - 1; i >= 0; i--) {
+        const ind = hitIndicators[i];
+        ind.t -= dt;
+        if (ind.t <= 0) { ind.el.remove(); hitIndicators.splice(i, 1); continue; }
+        const dx = ind.x - fpsPlayer.x, dz = ind.z - fpsPlayer.z;
+        const r = dx * Math.cos(fpsPlayer.yaw) - dz * Math.sin(fpsPlayer.yaw);
+        const f = -dx * Math.sin(fpsPlayer.yaw) - dz * Math.cos(fpsPlayer.yaw);
+        ind.el.style.transform = `rotate(${Math.atan2(r, f) * 57.3}deg)`;
+        ind.el.style.opacity = Math.min(1, ind.t);
+      }
+
+      fpsPlayer.flash = Math.max(0, fpsPlayer.flash - dt);
+      document.getElementById('fps-vig').style.opacity = fpsPlayer.flash * 2;
+      document.getElementById('combo-hud').textContent = `撃破: ${kills} | 地上エリア座標 X:${Math.round(fpsPlayer.x)} Z:${Math.round(fpsPlayer.z)}`;
+
+      drawRadar();
+      renderer.render(groundScene, groundCamera);
+    }
+
+    // ==========================================================================
+    // メインアニメーションループ（宇宙戦 ＆ 地上戦統合）
+    // ==========================================================================
+    let lastTime = performance.now();
+    function animate(now) {
       requestAnimationFrame(animate);
-      const now = Date.now();
+      const dt = Math.min(0.05, (now - lastTime) / 1000);
+      lastTime = now;
+
+      if (gameState === 'PLAYING' && battlePhase === 'GROUND') {
+        updateGroundPhase(dt);
+        return;
+      }
 
       planets.forEach(p => p.mesh.rotation.y += 0.001);
       stationGroup.rotation.y += 0.004;
@@ -1419,16 +2468,16 @@
       });
 
       if (gameState === 'MENU') {
-        camera.fov = 68;
-        camera.updateProjectionMatrix();
-        camera.position.set(Math.sin(now * 0.00045) * 11, 5.0, Math.cos(now * 0.00045) * 11);
-        camera.lookAt(0, 0, 0);
-        renderer.render(scene, camera);
+        spaceCamera.fov = 68;
+        spaceCamera.updateProjectionMatrix();
+        spaceCamera.position.set(Math.sin(now * 0.00045) * 11, 5.0, Math.cos(now * 0.00045) * 11);
+        spaceCamera.lookAt(0, 0, 0);
+        renderer.render(spaceScene, spaceCamera);
         return;
       }
 
       if (gameState !== 'PLAYING') {
-        renderer.render(scene, camera);
+        renderer.render(spaceScene, spaceCamera);
         return;
       }
 
@@ -1439,7 +2488,7 @@
         if (missileCharge === 100) updateHUD();
       }
 
-      // 1. マウス照準による上下左右360度フリーフライト操縦
+      // 1. マウス照準360度フリーフライト
       const deadZone = 0.08;
       const turnX = Math.abs(mouseNormX) > deadZone ? (mouseNormX - Math.sign(mouseNormX) * deadZone) : 0;
       const turnY = Math.abs(mouseNormY) > deadZone ? (mouseNormY - Math.sign(mouseNormY) * deadZone) : 0;
@@ -1450,7 +2499,6 @@
       if (keys['ArrowRight']) shipYaw -= 0.035;
       if (keys['ArrowUp'])    shipPitch += 0.03;
       if (keys['ArrowDown'])  shipPitch -= 0.03;
-
       shipPitch = Math.max(-1.3, Math.min(1.3, shipPitch));
 
       const hasHyper = saveData.crafted.includes('hyper_thruster');
@@ -1478,7 +2526,28 @@
       document.getElementById('combo-hud').textContent =
         `撃破: ${kills}${gameMode === 'online' ? ` | 対人: ${onlineCount}人` : ''} | 高度Y:${Math.round(shipGroup.position.y)} X:${Math.round(shipGroup.position.x)} Z:${Math.round(shipGroup.position.z)}`;
 
-      // 2. ワープゲート通過
+      // ★惑星への接近＆降下判定
+      nearbyPlanet = null;
+      for (const p of planets) {
+        const d = shipGroup.position.distanceTo(p.mesh.position);
+        if (d < p.r + 38) {
+          nearbyPlanet = p;
+          break;
+        }
+      }
+      const promptEl = document.getElementById('land-prompt');
+      const btnLand = document.getElementById('btn-land-toggle');
+      if (nearbyPlanet) {
+        promptEl.textContent = `🪐 [Fキー] ${nearbyPlanet.name} に降下して地上戦を開始！`;
+        promptEl.classList.remove('hidden');
+        btnLand.style.display = 'block';
+        btnLand.textContent = `🪐 ${nearbyPlanet.name}へ降下 [F]`;
+      } else {
+        promptEl.classList.add('hidden');
+        btnLand.style.display = 'none';
+      }
+
+      // ワープゲート通過
       warpGates.forEach(gate => {
         if (shipGroup.position.distanceTo(gate.position) < 13.5 && gateBoostTimer <= 60) {
           gateBoostTimer = 110;
@@ -1489,17 +2558,16 @@
         }
       });
 
-      // 3. 宇宙ステーション付近で耐久力自動回復（範囲＆速度アップ）
+      // 宇宙ステーション回復
       if (shipGroup.position.distanceTo(stationGroup.position) < 55 && hp < maxHp) {
         healTick++;
         if (healTick % 12 === 0) {
           hp = Math.min(maxHp, hp + 5);
           updateHUD();
-          if (healTick % 48 === 0) showToast('🛰️ 宇宙ステーションのナノフィールドで急速修復中...');
         }
       }
 
-      // 4. 小惑星との押し出し衝突判定
+      // 小惑星衝突押し出し
       asteroids.forEach(ast => {
         const dist = shipGroup.position.distanceTo(ast.position);
         const minDist = ast.userData.radius + 2.5;
@@ -1509,39 +2577,31 @@
         }
       });
 
-      // 5. 3D追跡カメラ
+      // カメラ追従
       const targetFov = gateBoostTimer > 0 ? 88 : (isBoosting ? 78 : 68);
-      camera.fov += (targetFov - camera.fov) * 0.1;
-      camera.updateProjectionMatrix();
+      spaceCamera.fov += (targetFov - spaceCamera.fov) * 0.1;
+      spaceCamera.updateProjectionMatrix();
 
-      const upOffset = new THREE.Vector3(0, 4.2, 0);
       const desiredCamPos = shipGroup.position.clone()
         .addScaledVector(forwardVec, -14.5)
-        .add(upOffset);
-      camera.position.lerp(desiredCamPos, 0.15);
+        .add(new THREE.Vector3(0, 4.2, 0));
+      spaceCamera.position.lerp(desiredCamPos, 0.15);
+      spaceCamera.lookAt(shipGroup.position.clone().addScaledVector(forwardVec, 25));
 
-      const lookTarget = shipGroup.position.clone().addScaledVector(forwardVec, 25);
-      camera.lookAt(lookTarget);
-
-      // 6. オンライン3D座標同期送信
+      // オンライン同期
       syncTick++;
       if (gameMode === 'online' && syncTick % 2 === 0 && onlineCount > 0) {
         sendNetPacket({
           type: 'sync',
           name: saveData.pilotName,
-          x: shipGroup.position.x,
-          y: shipGroup.position.y,
-          z: shipGroup.position.z,
-          qx: shipGroup.quaternion.x,
-          qy: shipGroup.quaternion.y,
-          qz: shipGroup.quaternion.z,
-          qw: shipGroup.quaternion.w,
+          x: shipGroup.position.x, y: shipGroup.position.y, z: shipGroup.position.z,
+          qx: shipGroup.quaternion.x, qy: shipGroup.quaternion.y, qz: shipGroup.quaternion.z, qw: shipGroup.quaternion.w,
           color: saveData.shipColor,
           crafted: saveData.crafted
         });
       }
 
-      // 7. オンライン対人プレイヤー機の更新
+      // 対人プレイヤー更新
       Object.entries(remotePlayers).forEach(([peerId, rp]) => {
         rp.mesh.position.lerp(rp.targetPos, 0.25);
         rp.mesh.quaternion.slerp(rp.targetQuat, 0.25);
@@ -1549,11 +2609,10 @@
           if (c.name === 'spinPart') c.rotation.y += 0.08;
           if (c.name === 'thruster') c.scale.y = 0.9 + Math.random() * 0.4;
         });
-
         for (let j = lasers.length - 1; j >= 0; j--) {
           if (rp.mesh.position.distanceTo(lasers[j].position) < 3.6) {
             createExplosion(lasers[j].position, 0xe879f9, 8);
-            scene.remove(lasers[j]);
+            spaceScene.remove(lasers[j]);
             lasers.splice(j, 1);
             if (connections[peerId]) {
               connections[peerId].send({ type: 'hit_me', x: rp.mesh.position.x, y: rp.mesh.position.y, z: rp.mesh.position.z });
@@ -1562,12 +2621,11 @@
         }
       });
 
-      // 8. 自機レーザー更新
+      // 自機レーザー
       for (let i = lasers.length - 1; i >= 0; i--) {
         const l = lasers[i];
         l.position.add(l.userData.vel);
         l.userData.life--;
-
         let blocked = false;
         for (let a = 0; a < asteroids.length; a++) {
           if (l.position.distanceTo(asteroids[a].position) < asteroids[a].userData.radius) {
@@ -1577,12 +2635,12 @@
           }
         }
         if (blocked || l.userData.life <= 0) {
-          scene.remove(l);
+          spaceScene.remove(l);
           lasers.splice(i, 1);
         }
       }
 
-      // 9. 3D追尾ミサイル更新
+      // 追尾ミサイル
       const remoteMeshes = Object.values(remotePlayers).map(r => r.mesh);
       const allTargets = [...enemies, ...remoteMeshes];
       for (let i = missiles.length - 1; i >= 0; i--) {
@@ -1596,15 +2654,14 @@
           m.position.addScaledVector(forwardVec, m.userData.speed);
         }
         if (Math.random() < 0.5) createExplosion(m.position, 0xf472b6, 1);
-        if (m.userData.life <= 0) { scene.remove(m); missiles.splice(i, 1); }
+        if (m.userData.life <= 0) { spaceScene.remove(m); missiles.splice(i, 1); }
       }
 
-      // 10. 敵ビーム弾更新（EASY/NORMALの優しいダメージ倍率を適用）
+      // 敵ビーム弾
       for (let i = enemyBullets.length - 1; i >= 0; i--) {
         const b = enemyBullets[i];
         b.position.add(b.userData.vel);
         b.userData.life--;
-
         let hitRock = false;
         for (let a = 0; a < asteroids.length; a++) {
           if (b.position.distanceTo(asteroids[a].position) < asteroids[a].userData.radius) {
@@ -1613,11 +2670,11 @@
             break;
           }
         }
-        if (hitRock) { scene.remove(b); enemyBullets.splice(i, 1); continue; }
+        if (hitRock) { spaceScene.remove(b); enemyBullets.splice(i, 1); continue; }
 
         if (b.position.distanceTo(shipGroup.position) < 2.3) {
           createExplosion(b.position, 0xff2244, 10);
-          scene.remove(b);
+          spaceScene.remove(b);
           enemyBullets.splice(i, 1);
           const dmg = Math.max(1, Math.round(b.userData.dmg * bal.dmgMult));
           hp = Math.max(0, hp - dmg);
@@ -1628,10 +2685,10 @@
           }
           continue;
         }
-        if (b.userData.life <= 0) { scene.remove(b); enemyBullets.splice(i, 1); }
+        if (b.userData.life <= 0) { spaceScene.remove(b); enemyBullets.splice(i, 1); }
       }
 
-      // 11. 3D敵機AI
+      // 宇宙敵機AI
       const maxEn = gameMode === 'online' ? 5 : bal.maxEnemies;
       if (enemies.length < maxEn) spawnEnemyAroundPlayer(false);
 
@@ -1641,8 +2698,7 @@
         const toPlayer = new THREE.Vector3().subVectors(shipGroup.position, e.position);
         const distToPlayer = toPlayer.length();
 
-        if (distToPlayer > 320) { scene.remove(e); enemies.splice(i, 1); continue; }
-
+        if (distToPlayer > 320) { spaceScene.remove(e); enemies.splice(i, 1); continue; }
         e.children.forEach(c => { if (c.name === 'spinPart') c.rotation.y += 0.07; });
 
         const dirToPlayer = toPlayer.clone().normalize();
@@ -1654,14 +2710,12 @@
           e.position.addScaledVector(dirToPlayer, rushSpeed);
           e.rotation.z += 0.12;
         } else {
-          if (distToPlayer > 46) {
-            e.position.addScaledVector(dirToPlayer, moveSpd);
-          }
-          if (distToPlayer < 130) {
+          if (distToPlayer > 46) e.position.addScaledVector(dirToPlayer, moveSpd);
+          if (distToPlayer < 145) {
             e.userData.shootCD--;
             if (e.userData.shootCD <= 0) {
               fireEnemyBeam(e.position, dirToPlayer, 0xff2244, 1.25 * bal.speedMult, spec.shootDmg);
-              const baseCD = spec.type === 'dreadnought' ? 55 : 85;
+              const baseCD = spec.type === 'dreadnought' ? 50 : 80;
               e.userData.shootCD = Math.floor(baseCD * bal.cdMult);
             }
           }
@@ -1672,7 +2726,7 @@
           if (e.position.distanceTo(lasers[j].position) < spec.size + 1.8) {
             e.userData.hp -= lasers[j].userData.power;
             createExplosion(lasers[j].position, spec.glowColor, 6);
-            scene.remove(lasers[j]);
+            spaceScene.remove(lasers[j]);
             lasers.splice(j, 1);
             if (e.userData.hp <= 0) { destroyed = true; break; }
           }
@@ -1683,7 +2737,7 @@
             if (e.position.distanceTo(missiles[k].position) < spec.size + 2.6) {
               e.userData.hp -= missiles[k].userData.power;
               createExplosion(missiles[k].position, 0xf472b6, 14);
-              scene.remove(missiles[k]);
+              spaceScene.remove(missiles[k]);
               missiles.splice(k, 1);
               if (e.userData.hp <= 0) { destroyed = true; break; }
             }
@@ -1693,7 +2747,7 @@
         if (destroyed) {
           createExplosion(e.position, spec.glowColor, 22);
           dropMaterials(e.position, spec.drops);
-          scene.remove(e);
+          spaceScene.remove(e);
           enemies.splice(i, 1);
           kills++;
           missileCharge = Math.min(100, missileCharge + 18);
@@ -1704,7 +2758,7 @@
 
         if (distToPlayer < spec.size + 1.5) {
           createExplosion(e.position, 0xff3333, 22);
-          scene.remove(e);
+          spaceScene.remove(e);
           enemies.splice(i, 1);
           const ramDamage = Math.max(1, Math.round(spec.ramDmg * bal.dmgMult));
           hp = Math.max(0, hp - ramDamage);
@@ -1717,7 +2771,7 @@
         }
       }
 
-      // 12. 資材回収（吸い寄せ範囲を拡大して回収しやすく）
+      // 宇宙資材回収
       for (let i = loots.length - 1; i >= 0; i--) {
         const l = loots[i];
         l.rotation.y += 0.06; l.rotation.x += 0.04;
@@ -1730,29 +2784,31 @@
           if (t === 'crystal') saveData.crystal++;
           persist();
           updateHUD();
-          scene.remove(l);
+          spaceScene.remove(l);
           loots.splice(i, 1);
         }
       }
 
-      // 13. パーティクル
+      // パーティクル
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.position.add(p.userData.vel);
         p.userData.life--;
-        if (p.userData.life <= 0) { scene.remove(p); particles.splice(i, 1); }
+        if (p.userData.life <= 0) { spaceScene.remove(p); particles.splice(i, 1); }
       }
 
       drawRadar();
-      renderer.render(scene, camera);
+      renderer.render(spaceScene, spaceCamera);
     }
 
     showMainMenu();
-    animate();
+    requestAnimationFrame(animate);
 
     window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
+      spaceCamera.aspect = window.innerWidth / window.innerHeight;
+      spaceCamera.updateProjectionMatrix();
+      groundCamera.aspect = window.innerWidth / window.innerHeight;
+      groundCamera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
   </script>
