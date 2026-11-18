@@ -316,6 +316,17 @@
     </div>
   </div>
 
+  <div id="station-menu" class="overlay hidden"><div class="panel"><div class="panel-header"><h2>🛰️ ORBITAL NEXUS 銀河ステーション</h2><span style="color:#4ade80;font-size:12px;">補給・修理・艦隊司令部</span></div>
+    <div class="craft-card"><div class="craft-info"><h4>🔧 ナノ修理ドック</h4><p>宇宙船の耐久力を全回復</p><span class="recipe-req">鉄×2 / コア×1</span></div><button class="craft-btn" onclick="stationRepair()">修理する</button></div>
+    <div class="craft-card"><div class="craft-info"><h4>🛸 護衛艦を艦隊に追加</h4><p>最大3機。宇宙で自動追従・援護射撃！</p><span class="recipe-req">鉄×5 / コア×3 / 結晶×2</span></div><button class="craft-btn" onclick="buyFleetShip()">艦を購入</button></div>
+    <div class="craft-card"><div class="craft-info"><h4>📦 資材補給パック</h4><p>結晶1個を鉄4個・コア2個に交換</p><span class="recipe-req">結晶×1</span></div><button class="craft-btn" onclick="stationTrade()">交換</button></div>
+    <p id="station-status" style="color:#7dd3fc;font-size:13px;">艦隊保有数：0 / 3</p><button class="back-btn" onclick="closeSubMenu()">← 戦場へ戻る</button></div></div>
+  <div id="city-menu" class="overlay hidden"><div class="panel"><div class="panel-header"><h2>🏙️ NOVA CITY 惑星都市ターミナル</h2><span style="color:#7dd3fc;font-size:12px;">安全区画</span></div>
+    <p style="color:#cbd5e1;font-size:13px;">着陸地点近くの前哨都市。補給所・整備工場・通信タワーを利用できます。</p>
+    <div class="craft-card"><div class="craft-info"><h4>🏥 メディカルセンター</h4><p>耐久力を全回復</p><span class="recipe-req">鉄×1 / コア×1</span></div><button class="craft-btn" onclick="cityHeal()">回復</button></div>
+    <div class="craft-card"><div class="craft-info"><h4>📦 都市マーケット</h4><p>結晶1個を鉄3個・コア1個に交換</p><span class="recipe-req">結晶×1</span></div><button class="craft-btn" onclick="cityTrade()">交換</button></div>
+    <div class="craft-card"><div class="craft-info"><h4>📡 管制塔</h4><p>周辺エリアの情報を確認</p><span class="recipe-req">NOVA CITY / LANDING DISTRICT</span></div><button class="craft-btn" onclick="showToast('📡 周辺エリア：補給路は正常。都市施設は稼働中！')">情報を見る</button></div>
+    <button class="back-btn" onclick="closeSubMenu()">← 地上エリアへ戻る</button></div></div>
   <!-- 設定 -->
   <div id="settings-menu" class="overlay hidden">
     <div class="panel">
@@ -405,6 +416,9 @@
 
   <div id="play-btns" class="top-btns hidden">
     <button class="mini-btn" id="btn-land-toggle" onclick="togglePlanetLanding()" style="display:none; border-color:#4ade80; color:#4ade80;">🪐 惑星へ降下 [F]</button>
+    <button class="mini-btn" onclick="openStationMenu()">🛰️ 銀河ステーション</button>
+    <button class="mini-btn" onclick="toggleFleet()">🛸 宇宙艦隊 ON/OFF</button>
+    <button class="mini-btn" id="btn-city" onclick="openCityMenu()" style="display:none;">🏙️ 惑星都市</button>
     <button class="mini-btn" onclick="startBossMission()">☠ ボスミッション</button>
     <button class="mini-btn" onclick="openWarpMap()">🌌 銀河ワープ [M]</button>
     <button class="mini-btn" onclick="toggleDrones()">🤖 ドローン展開 [G]</button>
@@ -438,6 +452,7 @@
       shipColor: 0xdc2626,
       crafted: [],
       droneCount: 0,
+      fleetCount: 0,
       pilotName: 'Pilot_' + Math.floor(100 + Math.random() * 900)
     };
     document.getElementById('cfg-name').value = saveData.pilotName;
@@ -769,6 +784,24 @@
       shipGroup = buildPlayerShip(saveData.shipColor, saveData.crafted);
       shipGroup.position.copy(pos); shipGroup.quaternion.copy(quat);
       spaceScene.add(shipGroup);
+    }
+
+    let fleetShips=[],fleetEnabled=true,fleetFireTick=0;
+    function rebuildFleet(){
+      fleetShips.forEach(f=>spaceScene.remove(f.mesh));fleetShips=[];
+      for(let i=0;i<Math.min(3,saveData.fleetCount||0);i++){const mesh=buildPlayerShip([0x22d3ee,0xa78bfa,0xfbbf24][i],[]);mesh.scale.setScalar(.48);spaceScene.add(mesh);fleetShips.push({mesh,index:i});}
+    }
+    function toggleFleet(){if(battlePhase!=='SPACE')return showToast('🛸 艦隊は宇宙で展開できます');if(!fleetShips.length)rebuildFleet();fleetEnabled=!fleetEnabled;fleetShips.forEach(f=>f.mesh.visible=fleetEnabled);showToast(fleetEnabled?'🛸 護衛艦隊を展開':'🛸 護衛艦隊を格納');}
+    function updateFleet(now){
+      if(!fleetEnabled||!fleetShips.length)return;fleetFireTick++;
+      fleetShips.forEach((f,i)=>{
+        const side=i%2===0?-1:1,row=Math.floor(i/2),offset=new THREE.Vector3(side*(7+row*2),1.5+Math.sin(now*.002+i)*.7,8+row*5);
+        offset.applyAxisAngle(new THREE.Vector3(0,1,0),shipYaw);f.mesh.position.lerp(shipGroup.position.clone().add(offset),.075);f.mesh.quaternion.slerp(shipGroup.quaternion,.08);
+        if(fleetFireTick%(58+i*13)===0&&enemies.length){const enemy=enemies.reduce((a,b)=>f.mesh.position.distanceTo(a.position)<f.mesh.position.distanceTo(b.position)?a:b);if(f.mesh.position.distanceTo(enemy.position)<105){
+          const dir=new THREE.Vector3().subVectors(enemy.position,f.mesh.position).normalize(),beam=new THREE.Mesh(new THREE.BoxGeometry(.18,.18,2.8),new THREE.MeshBasicMaterial({color:[0x22d3ee,0xa78bfa,0xfbbf24][i]}));
+          beam.position.copy(f.mesh.position);beam.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,-1),dir);beam.userData={vel:dir.multiplyScalar(2.2),life:48,power:.65};spaceScene.add(beam);lasers.push(beam);
+        }}
+      });
     }
 
     // 宇宙敵機定義
@@ -1314,6 +1347,19 @@
     });
     window.addEventListener('mouseup', (e) => { if (e.button === 0) fpsFiring = false; if (e.button === 2 && battlePhase === 'GROUND') fpsPlayer.ads = false; });
 
+    let cityBuilt=false;
+    function buildPlanetCity(){
+      if(cityBuilt)return;cityBuilt=true;const city=new THREE.Group();
+      const metal=new THREE.MeshStandardMaterial({color:0x26384c,metalness:.78,roughness:.34}),glass=new THREE.MeshStandardMaterial({color:0x0e7490,emissive:0x0369a1,emissiveIntensity:.45,metalness:.5,roughness:.18}),glow=new THREE.MeshBasicMaterial({color:0x38bdf8});
+      const block=(x,z,w,h,d,mat)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,h/2,z);city.add(m);return m;};
+      block(0,-28,34,.7,28,metal);
+      [[-22,-42,9,19,9],[-10,-48,8,29,8],[4,-45,11,23,10],[19,-39,10,16,9],[-20,-17,8,13,8],[18,-18,9,25,9]].forEach(([x,z,w,h,d])=>{
+        block(x,z,w,h,d,metal);const windows=block(x,z,w*.88,h*.72,d*.88,glass);windows.position.y=h*.72/2+h*.14;
+        const roof=new THREE.Mesh(new THREE.BoxGeometry(w*.7,.18,d*.7),glow);roof.position.set(x,h+.12,z);city.add(roof);
+      });
+      const road=new THREE.Mesh(new THREE.BoxGeometry(1.1,.06,36),glow);road.position.set(0,.45,-29);city.add(road);groundScene.add(city);
+    }
+
     function togglePlanetLanding() {
       if (gameState !== 'PLAYING') return;
       if (battlePhase === 'SPACE' && nearbyPlanet) {
@@ -1330,10 +1376,11 @@
         fpsPlayer.x = 0; fpsPlayer.z = 14; fpsPlayer.y = 0; fpsPlayer.cy = 0; fpsPlayer.vy = 0;
         fpsPlayer.yaw = 0; fpsPlayer.pitch = 0; fpsPlayer.wIdx = 0; fpsPlayer.ammo = [30, 5, 8, 3]; fpsPlayer.reloadTimer = 0;
         fpsPlayer.ads = false; fpsPlayer.scope = false; fpsPlayer.sinceHit = 99;
-        buildFpsGunMesh(0); clearGroundEntities();
+        buildFpsGunMesh(0); clearGroundEntities(); buildPlanetCity();
         const cnt = config.diff === 'hard' ? 6 : 4;
         for (let i = 0; i < cnt; i++) spawnGroundSoldier();
 
+        document.getElementById('btn-city').style.display='block';
         document.getElementById('fps-cross').classList.remove('hidden');
         document.getElementById('fps-weapon-hud').classList.remove('hidden');
         document.getElementById('fps-lock-tip').classList.remove('hidden');
@@ -1354,7 +1401,7 @@
         document.getElementById('mode-label').textContent = gameMode === 'online' ? `【🌐 3DオンラインPvP (ID: ${myPeerId || '接続中'})】` : `【🚀 3D銀河サバイバル (${getDiffBalance().label})】`;
         document.getElementById('controls-help').innerHTML = '<b>マウス</b> 旋回 | <b>WASD</b> 移動 | <b>H</b> ホバリング静止 | <b>M</b> 銀河ワープ<br><b>左クリック</b> ビーム | <b>右クリック</b> ミサイル | <b>G</b> ドローン | <b>F</b> 惑星降下';
         document.getElementById('radar-legend').textContent = '赤:敵 / 紫:対人 / 緑:基地 / 水色:惑星';
-        document.getElementById('btn-land-toggle').style.display = 'none';
+        document.getElementById('btn-land-toggle').style.display = 'none'; document.getElementById('btn-city').style.display='none';
         if (currentPlanet) shipGroup.position.set(currentPlanet.x, currentPlanet.y + currentPlanet.r + 28, currentPlanet.z + 25);
         updateHUD();
         showToast('🚀 宇宙空間へ帰還しました！');
@@ -1501,7 +1548,24 @@
       document.getElementById('gameover-overlay').classList.remove('hidden');
     }
 
-    function hideAllOverlays() { ['main-menu', 'shop-menu', 'world-menu', 'warp-menu', 'settings-menu', 'nora-menu', 'gameover-overlay'].forEach(id => document.getElementById(id).classList.add('hidden')); }
+    function hideAllOverlays() { ['main-menu', 'shop-menu', 'world-menu', 'warp-menu', 'settings-menu', 'nora-menu', 'station-menu', 'city-menu', 'gameover-overlay'].forEach(id => document.getElementById(id).classList.add('hidden')); }
+    function openStationMenu() {
+      if (gameState !== 'PLAYING' || battlePhase !== 'SPACE') return showToast('🛰️ ステーションは宇宙空間で利用できます');
+      pausedFromPlay=true; gameState='CRAFT_PAUSE'; crosshairEl.classList.add('hidden'); hideAllOverlays();
+      document.getElementById('station-status').textContent='艦隊保有数：'+(saveData.fleetCount||0)+' / 3'; document.getElementById('station-menu').classList.remove('hidden');
+    }
+    function stationRepair(){if(saveData.iron<2||saveData.core<1)return showToast('資材不足：鉄2・コア1');saveData.iron-=2;saveData.core--;hp=maxHp;persist();updateHUD();showToast('🔧 船体を完全修理！');}
+    function buyFleetShip(){
+      if((saveData.fleetCount||0)>=3)return showToast('艦隊は最大3機です');
+      if(saveData.iron<5||saveData.core<3||saveData.crystal<2)return showToast('資材不足：鉄5・コア3・結晶2が必要');
+      saveData.iron-=5;saveData.core-=3;saveData.crystal-=2;saveData.fleetCount=(saveData.fleetCount||0)+1;persist();updateHUD();
+      document.getElementById('station-status').textContent='艦隊保有数：'+saveData.fleetCount+' / 3';rebuildFleet();showToast('🛸 護衛艦を艦隊に登録しました！');
+    }
+    function stationTrade(){if(saveData.crystal<1)return showToast('結晶が足りません');saveData.crystal--;saveData.iron+=4;saveData.core+=2;persist();updateHUD();showToast('📦 補給パックを受け取りました！');}
+    function cityHeal(){if(saveData.iron<1||saveData.core<1)return showToast('資材不足：鉄1・コア1');saveData.iron--;saveData.core--;hp=maxHp;persist();updateHUD();showToast('🏥 メディカルセンターで回復！');}
+    function cityTrade(){if(saveData.crystal<1)return showToast('結晶が足りません');saveData.crystal--;saveData.iron+=3;saveData.core++;persist();updateHUD();showToast('🏙️ マーケットで交換しました！');}
+    function openCityMenu(){if(gameState!=='PLAYING'||battlePhase!=='GROUND')return;pausedFromPlay=true;gameState='CRAFT_PAUSE';fpsFiring=false;try{document.exitPointerLock();}catch(e){}hideAllOverlays();document.getElementById('city-menu').classList.remove('hidden');}
+
     function showMainMenu() {
       gameState = 'MENU'; battlePhase = 'SPACE'; fpsFiring = false; photoMode = false;
       try { document.exitPointerLock(); } catch (e) {}
@@ -1583,6 +1647,7 @@
       maxHp = 100 + (saveData.crafted.includes('twin_wing') ? 70 : 0); hp = maxHp; kills = 0; missileCharge = 100; gateBoostTimer = 0;
       shipGroup.position.set((Math.random() - 0.5) * 30, 5, (Math.random() - 0.5) * 30); shipYaw = 0; shipPitch = 0;
       if (saveData.droneCount > 0) { dronesActive = true; rebuildDrones(); }
+      rebuildFleet(); fleetEnabled=true; fleetShips.forEach(f=>f.mesh.visible=true);
       document.getElementById('mode-label').textContent = mode === 'online' ? `【🌐 3DオンラインPvP (ID: ${myPeerId || '接続中'})】` : `【🚀 3D銀河サバイバル (${bal.label})】`;
       ['hud', 'radar-box', 'play-btns', 'crosshair', 'center-dot'].forEach(id => document.getElementById(id).classList.remove('hidden'));
       document.getElementById('btn-land-toggle').style.display = 'none';
@@ -1930,6 +1995,9 @@
       if (keys['KeyD']) shipGroup.position.addScaledVector(rightVec, -0.48);
       shipGroup.position.addScaledVector(forwardVec, forwardSpeed);
       shipGroup.quaternion.slerp(new THREE.Quaternion().setFromEuler(new THREE.Euler(shipPitch, shipYaw, -turnX * 0.65, 'YXZ')), 0.16);
+
+      // ★宇宙艦隊の編隊飛行＆援護
+      updateFleet(now);
 
       // ★宇宙サポートドローン更新＆自動迎撃
       droneFireTick++;
