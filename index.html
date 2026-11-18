@@ -202,11 +202,15 @@
   </div>
 
   <div id="land-prompt" class="hidden" onclick="togglePlanetLanding()"></div>
-  <div id="race-hud" class="hidden" style="position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:22;text-align:center;background:rgba(2,12,28,.9);border:1px solid #facc15;border-radius:12px;padding:10px 24px;min-width:250px;box-shadow:0 0 22px #facc1544;pointer-events:none;">
-    <div style="font-size:12px;color:#facc15;font-weight:bold;letter-spacing:3px;">GALAXY GRAND PRIX</div>
-    <div id="race-progress" style="font-size:17px;font-weight:900;">CHECKPOINT 1 / 8</div>
-    <div id="race-time" style="font-size:25px;font-weight:900;color:#fff;font-variant-numeric:tabular-nums;">00:00.00</div>
-    <div id="race-best" style="font-size:11px;color:#7dd3fc;">BEST --:--.--</div>
+  <div id="race-hud" class="hidden" style="position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:22;text-align:center;background:rgba(2,12,28,.94);border:2px solid #facc15;border-radius:14px;padding:10px 22px;min-width:290px;box-shadow:0 0 25px #facc1555;pointer-events:none;">
+    <div style="font-size:12px;color:#facc15;font-weight:900;letter-spacing:2px;">🏁 SPACE Z 宇宙レース</div>
+    <div id="race-progress" style="font-size:20px;font-weight:900;">次の輪っか：1 / 8</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:14px;">
+      <div id="race-arrow" style="font-size:36px;color:#facc15;line-height:1;transform:rotate(0deg);">⬆</div>
+      <div><div id="race-distance" style="font-size:15px;color:#7dd3fc;font-weight:bold;">目標まで -- m</div><div id="race-time" style="font-size:25px;font-weight:900;color:#fff;font-variant-numeric:tabular-nums;">00:00.00</div></div>
+    </div>
+    <div id="race-best" style="font-size:11px;color:#7dd3fc;">ベストタイム --:--.--</div>
+    <div style="margin-top:6px;padding-top:6px;border-top:1px solid #64748b;color:#e2e8f0;font-size:11px;">W：前進　マウス：方向転換　Shift：ブースト</div>
   </div>
 
   <!-- メインメニュー -->
@@ -1668,22 +1672,40 @@
       ];
       route.forEach((p,i) => {
         const ring = new THREE.Mesh(
-          new THREE.TorusGeometry(10, 1.15, 12, 48),
-          new THREE.MeshStandardMaterial({color:i===0?0xfacc15:0x22d3ee,emissive:i===0?0x8a5a00:0x075985,emissiveIntensity:1.4,metalness:.45,roughness:.25})
+          new THREE.TorusGeometry(15, 1.5, 16, 64),
+          new THREE.MeshStandardMaterial({color:i===0?0xfacc15:0x22d3ee,emissive:i===0?0x8a5a00:0x075985,emissiveIntensity:2.1,metalness:.35,roughness:.2})
         );
         ring.position.copy(base).add(new THREE.Vector3(p[0],p[1],p[2]));
         ring.userData.raceIndex=i; spaceScene.add(ring); raceGates.push(ring);
+        const marker = new THREE.Sprite(new THREE.SpriteMaterial({color:0xfacc15,transparent:true,opacity:.95,depthWrite:false}));
+        marker.scale.set(10,3,1); marker.position.set(0,20,0); ring.add(marker);
+        // ビルボード文字の代わりに、ゲート上部の発光マーカーで目標を見つけやすくする
+        const beacon = new THREE.Mesh(new THREE.ConeGeometry(2.3,5,8),new THREE.MeshBasicMaterial({color:0xfacc15}));
+        beacon.position.set(0,23,0); ring.add(beacon);
       });
       document.getElementById('race-hud').classList.remove('hidden');
       updateRaceHUD();
-      showToast('🏁 レース開始！光るゲートを順番にくぐり抜けろ！');
+      showToast('🏁 黄色い矢印の方向へ進もう！輪っかを順番に通過！');
     }
     function updateRaceHUD() {
       const elapsed = Math.max(0, performance.now()-raceStartTime);
       const fmt = ms => { const t=ms/1000; return String(Math.floor(t/60)).padStart(2,'0')+':'+(t%60).toFixed(2).padStart(5,'0'); };
-      document.getElementById('race-progress').textContent = raceActive ? `CHECKPOINT ${Math.min(raceCheckpoint+1,8)} / 8` : 'FINISH!';
+      document.getElementById('race-progress').textContent = raceActive ? `次の輪っか：${Math.min(raceCheckpoint+1,8)} / 8` : '🏆 ゴール！';
       document.getElementById('race-time').textContent = fmt(elapsed);
-      document.getElementById('race-best').textContent = 'BEST ' + (raceBest ? fmt(raceBest) : '--:--.--');
+      document.getElementById('race-best').textContent = 'ベストタイム ' + (raceBest ? fmt(raceBest) : '--:--.--');
+      const target = raceGates[raceCheckpoint];
+      if (target && raceActive) {
+        const toTarget = target.position.clone().sub(shipGroup.position);
+        const distance = toTarget.length();
+        const forward = getForwardVector(shipYaw, shipPitch);
+        const right = new THREE.Vector3(-Math.cos(shipYaw),0,Math.sin(shipYaw));
+        const angle = Math.atan2(toTarget.dot(right),toTarget.dot(forward))*180/Math.PI;
+        document.getElementById('race-arrow').style.transform = `rotate(${angle}deg)`;
+        document.getElementById('race-distance').textContent = `目標まで 約${Math.round(distance)} m`;
+      } else {
+        document.getElementById('race-arrow').style.transform = 'rotate(0deg)';
+        document.getElementById('race-distance').textContent = raceActive ? 'ゴール！' : 'レース終了';
+      }
     }
     function updateSpaceRace(now) {
       if (!raceActive) return;
