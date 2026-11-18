@@ -2004,7 +2004,7 @@
           }
           spaceScene.remove(e); enemies.splice(i, 1); kills++; missileCharge = Math.min(100, missileCharge + 18); updateHUD(); continue;
         }
-        if (dist < spec.size + 1.5) { createExplosion(e.position, 0xff3333, 20); spaceScene.remove(e); enemies.splice(i, 1); hp = Math.max(0, hp - Math.max(1, Math.round(spec.ramDmg * bal.dmgMult))); updateHUD(); if (hp <= 0) { triggerGameOver(); return; } }
+        if (dist < spec.size + 1.5) { if (e.userData.missionBoss) { bossMissionActive = false; missionBoss = null; document.getElementById('boss-mission-hud').classList.add('hidden'); showToast('⚠️ ボスが接近！ミッション失敗。再挑戦できます'); } createExplosion(e.position, 0xff3333, 20); spaceScene.remove(e); enemies.splice(i, 1); hp = Math.max(0, hp - Math.max(1, Math.round(spec.ramDmg * bal.dmgMult))); updateHUD(); if (hp <= 0) { triggerGameOver(); return; } }
       }
 
       for (let i = loots.length - 1; i >= 0; i--) {
