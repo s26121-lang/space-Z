@@ -238,6 +238,7 @@
           🔩<span id="s-iron">0</span> / ⚡<span id="s-core">0</span> / 💎<span id="s-crystal">0</span>
         </div>
       </div>
+      <button class="menu-btn" style="margin:10px 0;width:100%;border-color:#22d3ee;" onclick="openShipWorkshop()">🛠️ 3D宇宙船組み立て工房</button>
       <div id="craft-list"></div>
       <div style="margin-top:12px; font-size:13px; color:#38bdf8; font-weight:bold;">🎨 自由カラー塗装（カラーピッカーで好きな色を設定可能）</div>
       <div class="color-row">
@@ -419,6 +420,31 @@
     </div>
   </div>
 
+  <div id="ship-workshop" class="overlay hidden" style="z-index:120;background:rgba(2,6,18,.97);">
+    <div class="panel" style="width:min(1100px,96vw);max-height:94vh;overflow:auto;">
+      <div class="panel-header"><h2>🛠️ 3D宇宙船組み立て工房</h2><button class="craft-btn" onclick="closeShipWorkshop()">戻る</button></div>
+      <p style="color:#94a3b8;font-size:12px;">パーツを追加し、位置・回転・大きさを調整。ドラッグで機体を回転、ホイールでズームできます。</p>
+      <div style="display:grid;grid-template-columns:minmax(0,1.5fr) minmax(220px,1fr);gap:12px;">
+        <div style="min-height:330px;background:#07111f;border:1px solid #25637a;border-radius:12px;overflow:hidden;"><canvas id="ship-workshop-canvas" style="width:100%;height:360px;display:block;touch-action:none;"></canvas></div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <b style="color:#67e8f9;">パーツを追加</b>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+            <button class="craft-btn" onclick="addWorkshopPart('wing')">翼</button><button class="craft-btn" onclick="addWorkshopPart('engine')">エンジン</button>
+            <button class="craft-btn" onclick="addWorkshopPart('cannon')">砲塔</button><button class="craft-btn" onclick="addWorkshopPart('armor')">装甲</button>
+            <button class="craft-btn" onclick="addWorkshopPart('cockpit')">コックピット</button><button class="craft-btn" onclick="addWorkshopPart('crystal')">エネルギーコア</button>
+          </div>
+          <label style="color:#cbd5e1;font-size:12px;">選択パーツ<select id="workshop-selected" onchange="selectWorkshopPart(this.value)" style="width:100%;padding:8px;background:#0f172a;color:white;"></select></label>
+          <label style="color:#cbd5e1;font-size:12px;">パーツの色<input id="workshop-color" type="color" value="#64748b" onchange="updateWorkshopPart('color',this.value)" style="width:100%;height:32px;"></label>
+          <div id="workshop-controls" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"></div>
+          <button class="craft-btn" style="background:#7f1d1d;color:white;" onclick="removeWorkshopPart()">選択パーツを削除</button>
+          <button class="menu-btn" onclick="saveWorkshopShip()">💾 この設計を保存して装備</button>
+          <button class="craft-btn" onclick="resetWorkshopShip()">追加パーツをすべて消去</button>
+        </div>
+      </div>
+      <div id="workshop-status" style="font-size:12px;color:#7dd3fc;margin-top:8px;">パーツを追加して自分だけの機体を作ろう。</div>
+    </div>
+  </div>
+
   <script>
     // ==========================================
     // セーブデータ＆設定
@@ -431,6 +457,7 @@
       pilotName: 'Pilot_' + Math.floor(100 + Math.random() * 900)
     };
     document.getElementById('cfg-name').value = saveData.pilotName;
+    saveData.customShipParts = Array.isArray(saveData.customShipParts) ? saveData.customShipParts : [];
     function persist() { localStorage.setItem('spaceZ_3d_v3', JSON.stringify(saveData)); }
 
     const RECIPES = [
@@ -724,6 +751,17 @@
         const crystal=new THREE.Mesh(new THREE.OctahedronGeometry(0.8,1),new THREE.MeshBasicMaterial({color:0xe879f9}));
         crystal.position.set(0,1.12,1.35); crystal.name='spinPart'; group.add(crystal);
       }
+      (saveData.customShipParts || []).forEach(part => {
+        const mat=new THREE.MeshStandardMaterial({color:part.color||0x64748b,metalness:.82,roughness:.28});
+        const glow=new THREE.MeshBasicMaterial({color:0x22d3ee}); let m;
+        if(part.type==='wing'){const sh=new THREE.Shape();sh.moveTo(0,0);sh.lineTo(2.8,.35);sh.lineTo(2.2,.9);sh.lineTo(.3,.65);sh.closePath();m=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:.18,bevelEnabled:true,bevelSegments:2,bevelSize:.06,bevelThickness:.04}),mat);m.rotation.x=Math.PI/2;}
+        else if(part.type==='engine'){m=new THREE.Group();const b=new THREE.Mesh(new THREE.CylinderGeometry(.38,.5,1.5,16),mat);b.rotation.x=Math.PI/2;m.add(b);const fl=new THREE.Mesh(new THREE.ConeGeometry(.34,1.8,14),glow);fl.rotation.x=Math.PI/2;fl.position.z=1.35;m.add(fl);}
+        else if(part.type==='cannon'){m=new THREE.Mesh(new THREE.CylinderGeometry(.18,.28,2,14),mat);m.rotation.x=Math.PI/2;}
+        else if(part.type==='armor'){m=new THREE.Mesh(new THREE.BoxGeometry(1.35,.32,1.5),mat);}
+        else if(part.type==='cockpit'){m=new THREE.Mesh(new THREE.SphereGeometry(.8,24,16),new THREE.MeshPhysicalMaterial({color:part.color||0x0e7490,metalness:.65,roughness:.12,clearcoat:1}));m.scale.set(.8,.55,1.2);}
+        else m=new THREE.Mesh(new THREE.OctahedronGeometry(.65,1),glow);
+        m.position.set(part.x||0,part.y||0,part.z||0);m.rotation.set(part.rx||0,part.ry||0,part.rz||0);m.scale.multiplyScalar(part.scale||1);group.add(m);
+      });
       return group;
     }
 
@@ -1515,6 +1553,81 @@
       else if (r.isDrone) { saveData.droneCount = Math.min(3, saveData.droneCount + 1); dronesActive = true; rebuildDrones(); showToast(`🤖 サポートドローン（計${saveData.droneCount}機）を配備しました！`); }
       else { saveData.crafted.push(r.id); if (r.id === 'twin_wing') { maxHp += 70; hp += 70; } rebuildPlayerShip(); showToast(`🔧 「${r.name}」を装備しました！`); }
       persist(); renderCraftList(); updateHUD();
+    }
+
+    let workshopScene=null,workshopCamera=null,workshopRenderer=null,workshopRoot=null,workshopRaf=0;
+    let workshopParts=[],workshopSelected=-1,workshopYaw=.45,workshopPitch=-.18,workshopZoom=17;
+    const WORKSHOP_TYPES={wing:'翼',engine:'エンジン',cannon:'砲塔',armor:'装甲',cockpit:'コックピット',crystal:'エネルギーコア'};
+    function openShipWorkshop(){
+      document.getElementById('ship-workshop').classList.remove('hidden');
+      workshopParts=JSON.parse(JSON.stringify(saveData.customShipParts||[]));workshopSelected=workshopParts.length?0:-1;
+      initWorkshopPreview();renderWorkshopParts();drawWorkshopPreview();
+      pausedFromPlay=true;if(gameState==='PLAYING')gameState='CRAFT_PAUSE';
+    }
+    function closeShipWorkshop(){
+      document.getElementById('ship-workshop').classList.add('hidden');if(workshopRaf)cancelAnimationFrame(workshopRaf);workshopRaf=0;
+      if(workshopRenderer){workshopRenderer.dispose();workshopRenderer=null;}
+      if(workshopScene){workshopScene.traverse(o=>{if(o.geometry)o.geometry.dispose();});workshopScene=null;}
+    }
+    function initWorkshopPreview(){
+      const canvas=document.getElementById('ship-workshop-canvas');if(!canvas||!window.THREE)return;
+      const w=Math.max(320,canvas.clientWidth),h=360;workshopScene=new THREE.Scene();workshopScene.background=new THREE.Color(0x07111f);
+      workshopCamera=new THREE.PerspectiveCamera(42,w/h,.1,100);workshopRenderer=new THREE.WebGLRenderer({canvas,antialias:true});
+      workshopRenderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));workshopRenderer.setSize(w,h,false);
+      workshopScene.add(new THREE.HemisphereLight(0xbdeaff,0x172033,1.5));
+      const key=new THREE.DirectionalLight(0xffffff,2);key.position.set(-5,8,7);workshopScene.add(key);
+      const rim=new THREE.PointLight(0x22d3ee,2,30);rim.position.set(4,2,-5);workshopScene.add(rim);
+      workshopRoot=new THREE.Group();workshopScene.add(workshopRoot);
+      const hull=new THREE.MeshStandardMaterial({color:saveData.shipColor||0xcbd5e1,metalness:.8,roughness:.25});
+      const base=new THREE.Mesh(new THREE.BoxGeometry(1.8,.65,6),hull);workshopRoot.add(base);
+      const nose=new THREE.Mesh(new THREE.ConeGeometry(1,3,6),new THREE.MeshStandardMaterial({color:0xdbeafe,metalness:.85}));nose.rotation.x=-Math.PI/2;nose.position.z=-4;workshopRoot.add(nose);
+      [-1,1].forEach(side=>{const wing=new THREE.Mesh(new THREE.BoxGeometry(4,.18,1.7),hull);wing.position.set(side*2,0,.5);workshopRoot.add(wing);const eng=new THREE.Mesh(new THREE.CylinderGeometry(.38,.5,1,16),hull);eng.rotation.x=Math.PI/2;eng.position.set(side*.65,0,3.2);workshopRoot.add(eng);});
+      const grid=new THREE.GridHelper(18,18,0x1d6079,0x173247);grid.position.y=-1.7;workshopScene.add(grid);
+      let drag=false,lx=0,ly=0;canvas.onpointerdown=e=>{drag=true;lx=e.clientX;ly=e.clientY;canvas.setPointerCapture(e.pointerId);};
+      canvas.onpointermove=e=>{if(!drag)return;workshopYaw+=(e.clientX-lx)*.008;workshopPitch=Math.max(-1,Math.min(1,workshopPitch+(e.clientY-ly)*.006));lx=e.clientX;ly=e.clientY;};
+      canvas.onpointerup=canvas.onpointercancel=()=>drag=false;
+      canvas.onwheel=e=>{e.preventDefault();workshopZoom=Math.max(9,Math.min(28,workshopZoom+e.deltaY*.015));};
+      const render=()=>{if(!workshopRenderer)return;workshopRoot.rotation.set(workshopPitch,workshopYaw,0);workshopCamera.position.set(0,5,workshopZoom);workshopCamera.lookAt(0,0,0);workshopRenderer.render(workshopScene,workshopCamera);workshopRaf=requestAnimationFrame(render);};render();
+    }
+    function makeWorkshopMesh(p){
+      const mat=new THREE.MeshStandardMaterial({color:p.color||0x64748b,metalness:.82,roughness:.25}),glow=new THREE.MeshBasicMaterial({color:0x22d3ee});let m;
+      if(p.type==='wing'){const sh=new THREE.Shape();sh.moveTo(0,0);sh.lineTo(2.8,.3);sh.lineTo(2.1,.9);sh.lineTo(.2,.6);sh.closePath();m=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:.18,bevelEnabled:true,bevelSegments:2,bevelSize:.05,bevelThickness:.04}),mat);m.rotation.x=Math.PI/2;}
+      else if(p.type==='engine'){m=new THREE.Group();const b=new THREE.Mesh(new THREE.CylinderGeometry(.38,.5,1.5,16),mat);b.rotation.x=Math.PI/2;m.add(b);const fl=new THREE.Mesh(new THREE.ConeGeometry(.32,1.6,14),glow);fl.rotation.x=Math.PI/2;fl.position.z=1.25;m.add(fl);}
+      else if(p.type==='cannon'){m=new THREE.Mesh(new THREE.CylinderGeometry(.18,.27,2,14),mat);m.rotation.x=Math.PI/2;}
+      else if(p.type==='armor')m=new THREE.Mesh(new THREE.BoxGeometry(1.4,.35,1.5),mat);
+      else if(p.type==='cockpit'){m=new THREE.Mesh(new THREE.SphereGeometry(.8,24,16),new THREE.MeshPhysicalMaterial({color:p.color||0x0e7490,metalness:.65,roughness:.1,clearcoat:1}));m.scale.set(.8,.55,1.2);}
+      else m=new THREE.Mesh(new THREE.OctahedronGeometry(.65,1),glow);
+      m.position.set(p.x||0,p.y||0,p.z||0);m.rotation.set(p.rx||0,p.ry||0,p.rz||0);m.scale.multiplyScalar(p.scale||1);return m;
+    }
+    function drawWorkshopPreview(){
+      if(!workshopRoot)return;[...workshopRoot.children].filter(o=>o.userData.partIndex!==undefined).forEach(o=>workshopRoot.remove(o));
+      workshopParts.forEach((p,i)=>{const o=makeWorkshopMesh(p);o.userData.partIndex=i;workshopRoot.add(o);});
+    }
+    function renderWorkshopParts(){
+      const sel=document.getElementById('workshop-selected');if(!sel)return;
+      sel.innerHTML=workshopParts.map((p,i)=>'<option value="'+i+'">'+(i+1)+'. '+WORKSHOP_TYPES[p.type]+'</option>').join('');
+      if(workshopSelected>=0&&workshopSelected<workshopParts.length)sel.value=String(workshopSelected);else workshopSelected=-1;
+      const c=document.getElementById('workshop-color');if(c&&workshopSelected>=0)c.value='#'+Number(workshopParts[workshopSelected].color||0x64748b).toString(16).padStart(6,'0');
+      renderWorkshopControls();
+    }
+    function selectWorkshopPart(v){workshopSelected=Number(v);renderWorkshopParts();}
+    function renderWorkshopControls(){
+      const box=document.getElementById('workshop-controls');if(!box)return;
+      if(workshopSelected<0||!workshopParts[workshopSelected]){box.innerHTML='<span style="color:#94a3b8;font-size:12px;">パーツを追加してください。</span>';return;}
+      const p=workshopParts[workshopSelected],names={x:'左右',y:'上下',z:'前後',scale:'大きさ',rx:'X回転',ry:'Y回転',rz:'Z回転'};
+      box.innerHTML=['x','y','z','scale','rx','ry','rz'].map(k=>'<label style="font-size:11px;color:#cbd5e1;">'+names[k]+'<input type="range" min="'+(k==='scale'?.35:(k[0]==='r'?-3.14:-5))+'" max="'+(k==='scale'?2.5:(k[0]==='r'?3.14:5))+'" step="'+(k[0]==='r'?.05:.1)+'" value="'+(p[k]??(k==='scale'?1:0))+'" oninput="updateWorkshopPart(\''+k+'\',Number(this.value))" style="width:100%;"></label>').join('');
+    }
+    function updateWorkshopPart(k,v){if(workshopSelected<0)return;workshopParts[workshopSelected][k]=k==='color'?parseInt(v.replace('#',''),16):v;drawWorkshopPreview();}
+    function addWorkshopPart(type){
+      const d={wing:{x:2,y:0,z:0},engine:{x:1,y:0,z:3},cannon:{x:-1,y:.2,z:-1},armor:{x:0,y:.65,z:0},cockpit:{x:0,y:.6,z:-1.2},crystal:{x:0,y:1,z:1}};
+      workshopParts.push({type,...d[type],color:0x64748b,scale:1,rx:0,ry:0,rz:0});workshopSelected=workshopParts.length-1;renderWorkshopParts();drawWorkshopPreview();
+    }
+    function removeWorkshopPart(){if(workshopSelected<0)return;workshopParts.splice(workshopSelected,1);workshopSelected=Math.min(workshopSelected,workshopParts.length-1);renderWorkshopParts();drawWorkshopPreview();}
+    function resetWorkshopShip(){if(!confirm('追加パーツをすべて削除しますか？'))return;workshopParts=[];workshopSelected=-1;renderWorkshopParts();drawWorkshopPreview();}
+    function saveWorkshopShip(){
+      saveData.customShipParts=JSON.parse(JSON.stringify(workshopParts));persist();rebuildPlayerShip();
+      landedShipBeacon.remove(parkedShip);parkedShip=buildPlayerShip(saveData.shipColor,saveData.crafted);parkedShip.scale.setScalar(.85);parkedShip.position.y=1.2;landedShipBeacon.add(parkedShip);
+      document.getElementById('workshop-status').textContent='保存完了！この設計が宇宙船に反映されました。';showToast('🚀 オリジナル宇宙船を保存・装備しました！');
     }
 
     function setShipColor(hex, el) {
