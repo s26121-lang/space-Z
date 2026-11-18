@@ -395,6 +395,7 @@
     <div id="missile-hud">🚀 追尾ミサイル: READY! [右クリック / E]</div>
     <div id="loot-hud">🔩 鉄: 0 | ⚡ コア: 0 | 💎 結晶: 0 | 🤖 ドローン: 0機</div>
     <div id="combo-hud">撃破: 0 | 高度(Y): 0 | 座標: X 0, Z 0</div>
+    <div id="boss-mission-hud" class="hidden" style="margin-top:7px;padding:7px 10px;border:1px solid #fb7185;border-radius:8px;background:rgba(80,10,30,.72);color:#fecdd3;font-weight:bold;">☠ ボスミッション：超弩級戦艦を撃破せよ！</div>
   </div>
 
   <div id="radar-box" class="hidden">
@@ -404,6 +405,7 @@
 
   <div id="play-btns" class="top-btns hidden">
     <button class="mini-btn" id="btn-land-toggle" onclick="togglePlanetLanding()" style="display:none; border-color:#4ade80; color:#4ade80;">🪐 惑星へ降下 [F]</button>
+    <button class="mini-btn" onclick="startBossMission()">☠ ボスミッション</button>
     <button class="mini-btn" onclick="openWarpMap()">🌌 銀河ワープ [M]</button>
     <button class="mini-btn" onclick="toggleDrones()">🤖 ドローン展開 [G]</button>
     <button class="mini-btn" onclick="openWorldPanel()">🛠️ 自由ワールド操作 [C]</button>
@@ -1132,6 +1134,7 @@
     let hp = 100, maxHp = 100, kills = 0, shipYaw = 0, shipPitch = 0;
     let missileCharge = 100, gateBoostTimer = 0, healTick = 0, syncTick = 0;
     let nearbyPlanet = null, currentPlanet = null;
+    let bossMissionActive = false, missionBoss = null;
     let hoverMode = false; // ★宇宙ホバリング停止モード
     let dronesActive = false; // ★自律ドローン展開状態
     let photoMode = false; // ★フォトモード
@@ -1479,6 +1482,10 @@
       document.getElementById('loot-hud').textContent = `🔩 鉄: ${saveData.iron} | ⚡ コア: ${saveData.core} | 💎 結晶: ${saveData.crystal} | 🤖 ドローン: ${saveData.droneCount}機`;
       document.getElementById('hp-text').textContent = `耐久力: ${Math.ceil(hp)} / ${maxHp}${fpsPlayer.heal ? ' (＋遮蔽物回復中)' : ''}`;
       document.getElementById('hp-text').style.color = hp <= 35 ? '#ef4444' : '#4ade80';
+      if (bossMissionActive && missionBoss && missionBoss.userData) {
+        const bhp = Math.max(0, Math.ceil(missionBoss.userData.hp));
+        document.getElementById("boss-mission-hud").textContent = `☠ ボス：超弩級戦艦　HP ${bhp} / ${missionBoss.userData.maxHp}`;
+      }
       const mHud = document.getElementById('missile-hud');
       if (battlePhase === 'GROUND') { mHud.textContent = `🪐 地上戦（[B]壁建築:鉄1 / [V]ジャンプ台:コア1）`; mHud.style.color = '#38bdf8'; }
       else if (missileCharge >= 100) { mHud.textContent = '🚀 追尾ミサイル: READY! [右クリック / E]'; mHud.style.color = '#f472b6'; }
@@ -1568,6 +1575,8 @@
     function clearSpaceEntities() { [lasers, enemyBullets, missiles, enemies, loots, particles].forEach(arr => { arr.forEach(o => spaceScene.remove(o)); arr.length = 0; }); }
 
     function startGame(mode) {
+      bossMissionActive = false; missionBoss = null;
+      document.getElementById("boss-mission-hud").classList.add("hidden");
       gameMode = mode; battlePhase = 'SPACE'; gameState = 'PLAYING'; hoverMode = false; photoMode = false;
       clearSpaceEntities(); clearGroundEntities(); hideAllOverlays();
       const bal = getDiffBalance();
@@ -1654,6 +1663,22 @@
         spaceScene.add(mMesh); missiles.push(mMesh);
       }
       showToast('🚀 追尾ミサイル一斉発射！！'); updateHUD();
+    }
+
+    function startBossMission() {
+      if (gameState !== "PLAYING" || battlePhase !== "SPACE") { showToast("☠ ボスミッションは宇宙空間で開始できます！"); return; }
+      if (gameMode === "online") { showToast("🌐 ボスミッションはソロモードで挑戦してください！"); return; }
+      if (bossMissionActive) { showToast("⚠️ ボスミッションはすでに進行中です！"); return; }
+      const spec = { ...ENEMY_TYPES[3], hp: 42, size: 8.5, speed: 0.12, shootDmg: 24, ramDmg: 42, drops: { iron: 8, core: 6, crystal: 5 } };
+      const boss = createEnemyMesh(spec);
+      boss.position.copy(shipGroup.position).add(new THREE.Vector3(0, 18, -125));
+      boss.userData = { spec, hp: Math.ceil(spec.hp * getDiffBalance().hpMult), shootCD: 38, missionBoss: true, maxHp: Math.ceil(spec.hp * getDiffBalance().hpMult) };
+      spaceScene.add(boss); enemies.push(boss);
+      bossMissionActive = true; missionBoss = boss;
+      const hud = document.getElementById("boss-mission-hud");
+      hud.textContent = `☠ ボスミッション：超弩級戦艦を撃破せよ！ HP ${boss.userData.hp} / ${boss.userData.maxHp}`;
+      hud.classList.remove("hidden");
+      showToast("☠ ボスミッション開始！超弩級戦艦が接近！");
     }
 
     function spawnEnemyAroundPlayer(initial = false) {
@@ -1968,7 +1993,17 @@
         let destroyed = false;
         for (let j = lasers.length - 1; j >= 0; j--) { if (e.position.distanceTo(lasers[j].position) < spec.size + 1.8) { e.userData.hp -= lasers[j].userData.power; spaceScene.remove(lasers[j]); lasers.splice(j, 1); if (e.userData.hp <= 0) { destroyed = true; break; } } }
         if (!destroyed) for (let k = missiles.length - 1; k >= 0; k--) { if (e.position.distanceTo(missiles[k].position) < spec.size + 2.6) { e.userData.hp -= missiles[k].userData.power; spaceScene.remove(missiles[k]); missiles.splice(k, 1); if (e.userData.hp <= 0) { destroyed = true; break; } } }
-        if (destroyed) { createExplosion(e.position, spec.glowColor, 20); dropMaterials(e.position, spec.drops); spaceScene.remove(e); enemies.splice(i, 1); kills++; missileCharge = Math.min(100, missileCharge + 18); updateHUD(); continue; }
+        if (destroyed) {
+          createExplosion(e.position, spec.glowColor, e.userData.missionBoss ? 55 : 20);
+          dropMaterials(e.position, e.userData.missionBoss ? { iron: 8, core: 6, crystal: 5 } : spec.drops);
+          if (e.userData.missionBoss) {
+            bossMissionActive = false; missionBoss = null;
+            document.getElementById("boss-mission-hud").classList.add("hidden");
+            saveData.iron += 25; saveData.core += 18; saveData.crystal += 12; persist();
+            showToast("🏆 ボス撃破！特別報酬：鉄25・コア18・結晶12を獲得！");
+          }
+          spaceScene.remove(e); enemies.splice(i, 1); kills++; missileCharge = Math.min(100, missileCharge + 18); updateHUD(); continue;
+        }
         if (dist < spec.size + 1.5) { createExplosion(e.position, 0xff3333, 20); spaceScene.remove(e); enemies.splice(i, 1); hp = Math.max(0, hp - Math.max(1, Math.round(spec.ramDmg * bal.dmgMult))); updateHUD(); if (hp <= 0) { triggerGameOver(); return; } }
       }
 
