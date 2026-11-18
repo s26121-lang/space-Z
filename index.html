@@ -2087,7 +2087,8 @@
     function animate(now) {
       requestAnimationFrame(animate);
       const dt = Math.min(0.05, (now - lastTime) / 1000); lastTime = now;
-      if (gameState === 'STATION_WALK') { updateStationInterior(dt,now); return; }\n      if (gameState === 'PLAYING' && battlePhase === 'GROUND') { updateGroundPhase(dt); return; }
+      if (gameState === 'STATION_WALK') { updateStationInterior(dt,now); return; }
+      if (gameState === 'PLAYING' && battlePhase === 'GROUND') { updateGroundPhase(dt); return; }
 
       planets.forEach(p => p.mesh.rotation.y += 0.001);
       stationGroup.rotation.y += 0.004;
