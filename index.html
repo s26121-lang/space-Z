@@ -202,6 +202,12 @@
   </div>
 
   <div id="land-prompt" class="hidden" onclick="togglePlanetLanding()"></div>
+  <div id="race-hud" class="hidden" style="position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:22;text-align:center;background:rgba(2,12,28,.9);border:1px solid #facc15;border-radius:12px;padding:10px 24px;min-width:250px;box-shadow:0 0 22px #facc1544;pointer-events:none;">
+    <div style="font-size:12px;color:#facc15;font-weight:bold;letter-spacing:3px;">GALAXY GRAND PRIX</div>
+    <div id="race-progress" style="font-size:17px;font-weight:900;">CHECKPOINT 1 / 8</div>
+    <div id="race-time" style="font-size:25px;font-weight:900;color:#fff;font-variant-numeric:tabular-nums;">00:00.00</div>
+    <div id="race-best" style="font-size:11px;color:#7dd3fc;">BEST --:--.--</div>
+  </div>
 
   <!-- メインメニュー -->
   <div id="main-menu" class="overlay">
@@ -216,6 +222,9 @@
     <div class="menu-buttons">
       <button class="menu-btn" onclick="startGame('solo')">
         <span>🚀 宇宙＆惑星サバイバルへ出る</span><span class="tag">SPACE & FPS</span>
+      </button>
+      <button class="menu-btn" onclick="startSpaceRace()">
+        <span>🏁 宇宙レースに挑戦</span><span class="tag">GALAXY GRAND PRIX</span>
       </button>
       <button class="menu-btn" onclick="openNoraLobby()">
         <span>🌐 オンラインPvP対戦</span><span class="tag">P2P LIVE</span>
@@ -1168,6 +1177,9 @@
     let missileCharge = 100, gateBoostTimer = 0, healTick = 0, syncTick = 0;
     let nearbyPlanet = null, currentPlanet = null;
     let bossMissionActive = false, missionBoss = null;
+    let raceActive = false, raceStartTime = 0, raceCheckpoint = 0, raceGates = [];
+    let raceBest = Number(localStorage.getItem('spaceZ_raceBest') || 0);
+
     let hoverMode = false; // ★宇宙ホバリング停止モード
     let dronesActive = false; // ★自律ドローン展開状態
     let photoMode = false; // ★フォトモード
@@ -1638,6 +1650,61 @@
     function openNoraLobby() { hideAllOverlays(); initPeerNetwork(); document.getElementById('nora-menu').classList.remove('hidden'); }
     function clearSpaceEntities() { [lasers, enemyBullets, missiles, enemies, loots, particles].forEach(arr => { arr.forEach(o => spaceScene.remove(o)); arr.length = 0; }); }
 
+
+    // 宇宙レース：8つのゲートを順番に通過するタイムアタック
+    function clearRaceGates() {
+      raceGates.forEach(g => spaceScene.remove(g));
+      raceGates = [];
+    }
+    function startSpaceRace() {
+      startGame('solo');
+      clearSpaceEntities();
+      clearRaceGates();
+      raceActive = true; raceCheckpoint = 0; raceStartTime = performance.now();
+      const base = shipGroup.position.clone();
+      const route = [
+        [0,8,-85],[32,18,-165],[58,5,-250],[20,-8,-335],
+        [-35,12,-425],[-62,28,-520],[-20,4,-615],[0,12,-710]
+      ];
+      route.forEach((p,i) => {
+        const ring = new THREE.Mesh(
+          new THREE.TorusGeometry(10, 1.15, 12, 48),
+          new THREE.MeshStandardMaterial({color:i===0?0xfacc15:0x22d3ee,emissive:i===0?0x8a5a00:0x075985,emissiveIntensity:1.4,metalness:.45,roughness:.25})
+        );
+        ring.position.copy(base).add(new THREE.Vector3(p[0],p[1],p[2]));
+        ring.userData.raceIndex=i; spaceScene.add(ring); raceGates.push(ring);
+      });
+      document.getElementById('race-hud').classList.remove('hidden');
+      updateRaceHUD();
+      showToast('🏁 レース開始！光るゲートを順番にくぐり抜けろ！');
+    }
+    function updateRaceHUD() {
+      const elapsed = Math.max(0, performance.now()-raceStartTime);
+      const fmt = ms => { const t=ms/1000; return String(Math.floor(t/60)).padStart(2,'0')+':'+(t%60).toFixed(2).padStart(5,'0'); };
+      document.getElementById('race-progress').textContent = raceActive ? `CHECKPOINT ${Math.min(raceCheckpoint+1,8)} / 8` : 'FINISH!';
+      document.getElementById('race-time').textContent = fmt(elapsed);
+      document.getElementById('race-best').textContent = 'BEST ' + (raceBest ? fmt(raceBest) : '--:--.--');
+    }
+    function updateSpaceRace(now) {
+      if (!raceActive) return;
+      const gate = raceGates[raceCheckpoint];
+      if (gate && shipGroup.position.distanceTo(gate.position) < 12) {
+        gate.material.color.setHex(0xfacc15); gate.material.emissive.setHex(0x8a5a00);
+        raceCheckpoint++;
+        if (raceCheckpoint >= raceGates.length) {
+          const result = now-raceStartTime;
+          if (!raceBest || result<raceBest) { raceBest=result; localStorage.setItem('spaceZ_raceBest',String(raceBest)); }
+          raceActive=false; updateRaceHUD(); clearRaceGates();
+          showToast('🏆 ゴール！タイム '+(result/1000).toFixed(2)+'秒'+(result===raceBest?'  NEW RECORD!':''));
+          setTimeout(()=>document.getElementById('race-hud').classList.add('hidden'),4500);
+          return;
+        }
+        if (raceGates[raceCheckpoint]) { raceGates[raceCheckpoint].material.color.setHex(0xfacc15); raceGates[raceCheckpoint].material.emissive.setHex(0x8a5a00); }
+        showToast('CHECKPOINT '+raceCheckpoint+' / 8');
+      }
+      updateRaceHUD();
+    }
+
     function startGame(mode) {
       bossMissionActive = false; missionBoss = null;
       document.getElementById("boss-mission-hud").classList.add("hidden");
@@ -1994,6 +2061,7 @@
       if (keys['KeyA']) shipGroup.position.addScaledVector(rightVec, 0.48);
       if (keys['KeyD']) shipGroup.position.addScaledVector(rightVec, -0.48);
       shipGroup.position.addScaledVector(forwardVec, forwardSpeed);
+      updateSpaceRace(now);
       shipGroup.quaternion.slerp(new THREE.Quaternion().setFromEuler(new THREE.Euler(shipPitch, shipYaw, -turnX * 0.65, 'YXZ')), 0.16);
 
       // ★宇宙艦隊の編隊飛行＆援護
@@ -2050,7 +2118,7 @@
         if (b.userData.life <= 0) { spaceScene.remove(b); enemyBullets.splice(i, 1); }
       }
 
-      if (enemies.length < (gameMode === 'online' ? 5 : bal.maxEnemies)) spawnEnemyAroundPlayer(false);
+      if (!raceActive && enemies.length < (gameMode === 'online' ? 5 : bal.maxEnemies)) spawnEnemyAroundPlayer(false);
       for (let i = enemies.length - 1; i >= 0; i--) {
         const e = enemies[i], spec = e.userData.spec, toPlayer = new THREE.Vector3().subVectors(shipGroup.position, e.position), dist = toPlayer.length();
         if (dist > 320) { spaceScene.remove(e); enemies.splice(i, 1); continue; }
