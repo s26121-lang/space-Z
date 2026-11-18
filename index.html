@@ -329,6 +329,13 @@
     </div>
   </div>
 
+  <div id="station-interior-hud" class="hidden" style="position:fixed;inset:0;z-index:25;pointer-events:none;color:#e0f2fe;font-family:Arial,sans-serif;">
+    <div style="position:absolute;top:15px;left:50%;transform:translateX(-50%);padding:11px 22px;background:rgba(3,12,28,.84);border:1px solid #38bdf8;border-radius:12px;text-align:center;"><b style="font-size:18px;letter-spacing:2px;color:#7dd3fc;">🛰️ ORBITAL NEXUS</b><div style="font-size:11px;">銀河ステーション内部 / CENTRAL HABITAT</div></div>
+    <div style="position:absolute;left:15px;bottom:15px;padding:11px 14px;background:rgba(3,12,28,.85);border:1px solid #334155;border-radius:9px;font-size:12px;line-height:1.8;">WASD：移動　マウス：見回す<br>Shift：ダッシュ　Space：ジャンプ<br>F：近くの端末を利用</div>
+    <div style="position:absolute;right:15px;top:15px;display:flex;flex-direction:column;gap:8px;pointer-events:auto;">
+      <button class="mini-btn" onclick="stationRepair()">🔧 修理ドック</button><button class="mini-btn" onclick="buyFleetShip()">🛸 艦隊購入</button><button class="mini-btn" onclick="stationTrade()">📦 資材交換</button><button class="mini-btn" onclick="exitStationInterior()" style="border-color:#fb7185;color:#fecdd3;">🚪 外へ出る</button>
+    </div><div id="station-interior-prompt" style="position:absolute;bottom:22%;left:50%;transform:translateX(-50%);padding:10px 18px;background:rgba(3,12,28,.88);border:1px solid #38bdf8;border-radius:9px;font-weight:bold;display:none;">F：ステーション端末を利用</div>
+  </div>
   <div id="station-menu" class="overlay hidden"><div class="panel"><div class="panel-header"><h2>🛰️ ORBITAL NEXUS 銀河ステーション</h2><span style="color:#4ade80;font-size:12px;">補給・修理・艦隊司令部</span></div>
     <div class="craft-card"><div class="craft-info"><h4>🔧 ナノ修理ドック</h4><p>宇宙船の耐久力を全回復</p><span class="recipe-req">鉄×2 / コア×1</span></div><button class="craft-btn" onclick="stationRepair()">修理する</button></div>
     <div class="craft-card"><div class="craft-info"><h4>🛸 護衛艦を艦隊に追加</h4><p>最大3機。宇宙で自動追従・援護射撃！</p><span class="recipe-req">鉄×5 / コア×3 / 結晶×2</span></div><button class="craft-btn" onclick="buyFleetShip()">艦を購入</button></div>
@@ -2042,11 +2049,48 @@
     // ==========================================
     // メインループ
     // ==========================================
+    // ORBITAL NEXUS walkable 3D interior
+    const stationInteriorScene=new THREE.Scene();stationInteriorScene.background=new THREE.Color(0x030916);stationInteriorScene.fog=new THREE.Fog(0x030916,55,190);
+    const stationInteriorCamera=new THREE.PerspectiveCamera(76,window.innerWidth/window.innerHeight,.1,260);stationInteriorScene.add(new THREE.HemisphereLight(0x9bdcff,0x101827,1.55));
+    const siKey=new THREE.DirectionalLight(0xd7edff,1.15);siKey.position.set(12,28,8);stationInteriorScene.add(siKey);
+    const siBlue=new THREE.PointLight(0x168bff,3.2,55);siBlue.position.set(-12,8,-18);stationInteriorScene.add(siBlue);
+    const siCyan=new THREE.PointLight(0x00e5ff,2.6,48);siCyan.position.set(14,7,-58);stationInteriorScene.add(siCyan);
+    const siMat=(c,m=.55,r=.42,e=0,i=0)=>new THREE.MeshStandardMaterial({color:c,metalness:m,roughness:r,emissive:e,emissiveIntensity:i});
+    const siFloor=siMat(0x18283a,.72,.34),siWall=siMat(0x26384b,.78,.38),siDark=siMat(0x081321,.65,.4),siGlow=siMat(0x20dfff,.35,.22,0x00bfff,2.2),siAmber=siMat(0xffb34d,.25,.25,0xff8c20,1.8);
+    function siBox(w,h,d,mat,x,y,z){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);o.position.set(x,y,z);stationInteriorScene.add(o);return o;}
+    siBox(42,.8,150,siFloor,0,-.45,-34);siBox(42,.7,150,siDark,0,18.2,-34);siBox(.8,18,150,siWall,-21,8.5,-34);siBox(.8,18,150,siWall,21,8.5,-34);siBox(42,18,.8,siWall,0,8.5,41);siBox(42,18,.8,siWall,0,8.5,-109);
+    for(let z=-102;z<=34;z+=12){siBox(42,.18,.55,siDark,0,17.65,z);siBox(.12,.08,9,siGlow,-19.8,.05,z);siBox(.12,.08,9,siGlow,19.8,.05,z);}
+    for(let z=-100;z<=30;z+=16){siBox(1,17,.65,siDark,-18,8.5,z);siBox(1,17,.65,siDark,18,8.5,z);siBox(1.1,.055,.12,siGlow,-17.4,16.7,z);siBox(1.1,.055,.12,siGlow,17.4,16.7,z);}
+    // Panoramic windows and planet view
+    const glass=new THREE.MeshStandardMaterial({color:0x3ba9d8,metalness:.25,roughness:.12,transparent:true,opacity:.22});
+    for(let x=-14;x<=14;x+=7){siBox(6,8,.35,glass,x,10,-108.45);siBox(6,.28,.55,siGlow,x,5.9,-108.2);siBox(6,.28,.55,siGlow,x,14.1,-108.2);}
+    const planet=new THREE.Mesh(new THREE.SphereGeometry(13,40,28),siMat(0x1766b5,.2,.8,0x082b66,.7));planet.position.set(5,4,-145);stationInteriorScene.add(planet);
+    const cloud=new THREE.Mesh(new THREE.SphereGeometry(13.25,32,24),new THREE.MeshBasicMaterial({color:0x8bdcff,transparent:true,opacity:.13,wireframe:true}));cloud.position.copy(planet.position);stationInteriorScene.add(cloud);
+    // Large spacecraft hangar to the left
+    siBox(32,.55,34,siDark,-54,-.2,-28);siBox(32,.5,34,siWall,-54,15.8,-28);siBox(.6,16,34,siWall,-70,7.5,-28);siBox(.6,16,34,siWall,-38,7.5,-28);
+    for(let i=0;i<3;i++){const z=-40+i*12;siBox(8,.12,8,siMat(0x263e55,.5,.4),-54,.12,z);const parked=buildPlayerShip([0x22d3ee,0xa78bfa,0xfbbf24][i],[]);parked.scale.setScalar(1.5);parked.position.set(-54,1.15,z);parked.rotation.y=Math.PI;stationInteriorScene.add(parked);}
+    // Three service counters: repair, fleet command, trade
+    const serviceData=[{z:22,name:'REPAIR DOCK'},{z:-2,name:'FLEET COMMAND'},{z:-26,name:'TRADE MARKET'}];
+    serviceData.forEach((d,i)=>{siBox(9,2.2,4,siWall,12.5,1.1,d.z);siBox(8.4,.18,3.5,siDark,12.5,2.3,d.z);const h=new THREE.Mesh(new THREE.BoxGeometry(5.8,3.2,.12),new THREE.MeshBasicMaterial({color:[0x20dfff,0xa78bfa,0xffb34d][i],transparent:true,opacity:.3,wireframe:true}));h.position.set(12.5,4.8,d.z-1.2);stationInteriorScene.add(h);const orb=new THREE.Mesh(new THREE.IcosahedronGeometry(.8,1),siMat([0x20dfff,0xa78bfa,0xffb34d][i],.3,.2,[0x20dfff,0xa78bfa,0xffb34d][i],1.8));orb.position.set(12.5,4.4,d.z-1.8);stationInteriorScene.add(orb);siBox(5,.055,.12,i===2?siAmber:siGlow,12.5,2.55,d.z-2);});
+    // Floating central reactor and orbital rings
+    const reactor=new THREE.Group();reactor.position.set(0,0,-48);stationInteriorScene.add(reactor);
+    const reactorCore=new THREE.Mesh(new THREE.OctahedronGeometry(3.2,2),siMat(0x39d9ff,.4,.18,0x087dbb,2.4));reactorCore.position.y=8;reactor.add(reactorCore);
+    for(let i=0;i<3;i++){const ring=new THREE.Mesh(new THREE.TorusGeometry(5+i*1.6,.12,12,80),siGlow);ring.position.y=8;ring.rotation.x=(i-1)*.65;reactor.add(ring);}
+    // Upper gallery bridges and station signage
+    for(const side of [-1,1]){siBox(8,.55,54,siWall,side*15,9,-35);siBox(8,.2,54,siGlow,side*15,9.38,-35);}
+    const sc=document.createElement('canvas');sc.width=512;sc.height=128;const cx=sc.getContext('2d');cx.fillStyle='#06182a';cx.fillRect(0,0,512,128);cx.fillStyle='#75e6ff';cx.font='bold 42px Arial';cx.fillText('ORBITAL NEXUS / CENTRAL HUB',18,78);const stx=new THREE.CanvasTexture(sc);const sign=new THREE.Mesh(new THREE.PlaneGeometry(17,4.25),new THREE.MeshBasicMaterial({map:stx,transparent:true}));sign.position.set(0,13,39.45);stationInteriorScene.add(sign);
+    const starGeo=new THREE.BufferGeometry(),starPos=[];for(let i=0;i<420;i++)starPos.push((Math.random()-.5)*230,Math.random()*100-20,-130-Math.random()*130);starGeo.setAttribute('position',new THREE.Float32BufferAttribute(starPos,3));stationInteriorScene.add(new THREE.Points(starGeo,new THREE.PointsMaterial({color:0x9bdcff,size:.45})));
+    let stationInteriorActive=false,siYaw=0,siPitch=0,siX=0,siZ=28,siY=0,siVy=0;
+    function enterStationInterior(){if(gameState!=='PLAYING'||battlePhase!=='SPACE')return showToast('🛰️ 宇宙空間でステーションを選択してください');stationInteriorActive=true;pausedFromPlay=true;gameState='STATION_WALK';document.getElementById('station-interior-hud').classList.remove('hidden');siX=0;siZ=28;siY=0;siYaw=0;siPitch=0;try{renderer.domElement.requestPointerLock();}catch(e){}showToast('ORBITAL NEXUSへようこそ！ WASDで歩いて探索しよう');}
+    function exitStationInterior(){stationInteriorActive=false;document.getElementById('station-interior-hud').classList.add('hidden');try{document.exitPointerLock();}catch(e){}gameState='PLAYING';battlePhase='SPACE';crosshairEl.classList.remove('hidden');showToast('🚀 ステーションから宇宙空間へ戻りました');}
+    function updateStationInterior(dt,now){const f=(keys.KeyW?1:0)-(keys.KeyS?1:0),r=(keys.KeyD?1:0)-(keys.KeyA?1:0),len=Math.hypot(f,r)||1,spd=10*((keys.ShiftLeft||keys.ShiftRight)?1.65:1);siX+=(r*Math.cos(siYaw)-f*Math.sin(siYaw))/len*spd*dt;siZ+=(r*Math.sin(siYaw)+f*Math.cos(siYaw))/len*spd*dt;siX=Math.max(-67,Math.min(19,siX));siZ=Math.max(-103,Math.min(35,siZ));if(keys.Space&&siY<=.01)siVy=6.2;siVy-=17*dt;siY=Math.max(0,siY+siVy*dt);if(siY===0)siVy=0;stationInteriorCamera.position.set(siX,1.7+siY,siZ);stationInteriorCamera.rotation.order='YXZ';stationInteriorCamera.rotation.set(siPitch,siYaw,0);reactorCore.rotation.y+=dt*.55;reactorCore.rotation.x+=dt*.28;reactor.children.slice(1).forEach((o,i)=>o.rotation.z+=(i%2?1:-1)*dt*.35);planet.rotation.y+=dt*.08;cloud.rotation.y-=dt*.05;const near=serviceData.some(d=>Math.hypot(siX-12.5,siZ-d.z)<5);document.getElementById('station-interior-prompt').style.display=near?'block':'none';if(near&&keys.KeyF){keys.KeyF=false;const d=serviceData.reduce((a,b)=>Math.hypot(siX-12.5,siZ-a.z)<Math.hypot(siX-12.5,siZ-b.z)?a:b);if(d.name==='REPAIR DOCK')stationRepair();else if(d.name==='FLEET COMMAND')buyFleetShip();else stationTrade();}renderer.render(stationInteriorScene,stationInteriorCamera);}
+    window.addEventListener('mousemove',e=>{if(stationInteriorActive&&document.pointerLockElement===renderer.domElement){siYaw-=e.movementX*.0022;siPitch=Math.max(-1.15,Math.min(1.15,siPitch-e.movementY*.0022));}});
+    renderer.domElement.addEventListener('click',()=>{if(stationInteriorActive&&document.pointerLockElement!==renderer.domElement){try{renderer.domElement.requestPointerLock();}catch(e){}}});
     let lastTime = performance.now();
     function animate(now) {
       requestAnimationFrame(animate);
       const dt = Math.min(0.05, (now - lastTime) / 1000); lastTime = now;
-      if (gameState === 'PLAYING' && battlePhase === 'GROUND') { updateGroundPhase(dt); return; }
+      if (gameState === 'STATION_WALK') { updateStationInterior(dt,now); return; }\n      if (gameState === 'PLAYING' && battlePhase === 'GROUND') { updateGroundPhase(dt); return; }
 
       planets.forEach(p => p.mesh.rotation.y += 0.001);
       stationGroup.rotation.y += 0.004;
