@@ -1572,11 +1572,7 @@
     }
 
     function hideAllOverlays() { ['main-menu', 'shop-menu', 'world-menu', 'warp-menu', 'settings-menu', 'nora-menu', 'station-menu', 'city-menu', 'gameover-overlay'].forEach(id => document.getElementById(id).classList.add('hidden')); }
-    function openStationMenu() {
-      if (gameState !== 'PLAYING' || battlePhase !== 'SPACE') return showToast('🛰️ ステーションは宇宙空間で利用できます');
-      pausedFromPlay=true; gameState='CRAFT_PAUSE'; crosshairEl.classList.add('hidden'); hideAllOverlays();
-      document.getElementById('station-status').textContent='艦隊保有数：'+(saveData.fleetCount||0)+' / 3'; document.getElementById('station-menu').classList.remove('hidden');
-    }
+    function openStationMenu() { enterStationInterior(); }
     function stationRepair(){if(saveData.iron<2||saveData.core<1)return showToast('資材不足：鉄2・コア1');saveData.iron-=2;saveData.core--;hp=maxHp;persist();updateHUD();showToast('🔧 船体を完全修理！');}
     function buyFleetShip(){
       if((saveData.fleetCount||0)>=3)return showToast('艦隊は最大3機です');
@@ -1756,6 +1752,7 @@
     const keys = {};
     window.addEventListener('keydown', (e) => {
       keys[e.code] = true;
+      if (gameState === 'STATION_WALK') { if (e.code === 'Escape') exitStationInterior(); return; }
       if (gameState !== 'PLAYING') return;
 
       if (e.code === 'KeyP') { togglePhotoMode(); return; }
@@ -2222,6 +2219,7 @@
     showMainMenu(); requestAnimationFrame(animate);
     window.addEventListener('resize', () => {
       spaceCamera.aspect = window.innerWidth / window.innerHeight; spaceCamera.updateProjectionMatrix();
+      stationInteriorCamera.aspect = window.innerWidth / window.innerHeight; stationInteriorCamera.updateProjectionMatrix();
       groundCamera.aspect = window.innerWidth / window.innerHeight; groundCamera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
